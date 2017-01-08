@@ -5,9 +5,12 @@ from django.contrib import admin
 
 from rest_framework.routers import DefaultRouter
 
+from jobs_backend.users.views import UserViewSet
+
 
 router = DefaultRouter()
 # Here goes API endpoints registrations: router.register(r'foo', FooViewSet)
+router.register(r'users', UserViewSet)
 
 
 urlpatterns = [
