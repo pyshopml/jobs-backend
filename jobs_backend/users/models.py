@@ -17,7 +17,7 @@ class UserManager(BaseUserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
-        # todo: Send email to user
+
         user.email_user(
             subject='PyJobs registration confirm',
             message='Go to http://jobs.pyshop.ru/activation/?token=',
