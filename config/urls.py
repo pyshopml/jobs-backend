@@ -5,7 +5,7 @@ from django.contrib import admin
 
 from rest_framework.routers import DefaultRouter
 
-from jobs_backend.users.views import UserViewSet
+from jobs_backend.users.views import UserViewSet, LoginView
 
 
 router = DefaultRouter()
