@@ -1,7 +1,12 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import (
+    authenticate,
+    login,
+    logout,
+)
 
 from rest_framework import (
     mixins,
+    permissions,
     status,
     views,
     viewsets,
@@ -51,3 +56,15 @@ class LoginView(views.APIView):
                 'status': 'Unauthorized',
                 'message': 'Invalid credentials.'
             }, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class LogoutView(views.APIView):
+    """
+    With session-based auth requires to set
+    `X-CSRFToken` header at HTTP-request
+    """
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, format=None):
+        logout(request)
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
