@@ -15,43 +15,35 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from .models import User
-from .serializers import UserSerializer
+from . import serializers
 
 
 class UserViewSet(mixins.CreateModelMixin,
+                  mixins.ListModelMixin,
                   mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
-                  mixins.ListModelMixin,
                   viewsets.GenericViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
     queryset = User.objects.all().order_by('-pk')
-    serializer_class = UserSerializer
+    serializer_class = serializers.UserRetrieveSerializer
     permission_classes = (AllowAny,)  # todo: Deal with permissions later
 
     def get_permissions(self):
         # todo: Implement later for ability to change only your account
         return super(UserViewSet, self).get_permissions()
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-
-        if serializer.is_valid():
-            # check for empty password
-            password = serializer.validated_data.get('password')
-            if not password:
-                return Response({
-                    'password': ['Please specify password']
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            # all ok, creating user
-            User.objects.create_user(**serializer.validated_data)
-            return Response(serializer.validated_data,
-                            status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+    def get_serializer_class(self):
+        """
+        Decides which serializer to use
+        """
+        action = self.action
+        if action == 'create':
+            return serializers.UserCreateSerializer
+        elif 'update' in action:
+            return serializers.UserUpdateSerializer
+        return self.serializer_class
 
 
 class LoginView(views.APIView):
@@ -67,7 +59,7 @@ class LoginView(views.APIView):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                serialized = UserSerializer(user)
+                serialized = serializers.UserRetrieveSerializer(user)
                 return Response(serialized.data)
             else:
                 return Response({
