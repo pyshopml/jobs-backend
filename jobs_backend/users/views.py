@@ -42,17 +42,16 @@ class UserViewSet(mixins.CreateModelMixin,
             password = serializer.validated_data.get('password')
             if not password:
                 return Response({
-                    'status': 'Bad request',
-                    'message': 'Please specify password'
+                    'password': ['Please specify password']
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             # all ok, creating user
             User.objects.create_user(**serializer.validated_data)
             return Response(serializer.validated_data,
                             status=status.HTTP_201_CREATED)
-
-        # handle the default behavior
-        return super(UserViewSet, self).create(request, *args, **kwargs)
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginView(views.APIView):
