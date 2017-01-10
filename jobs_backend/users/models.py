@@ -30,8 +30,7 @@ class UserManager(BaseUserManager):
         Creates regular User
         """
         extra_fields.setdefault('is_superuser', False)
-        # todo: Can login right after registration?
-        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault('is_active', False)
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):

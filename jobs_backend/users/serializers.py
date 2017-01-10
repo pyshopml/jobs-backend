@@ -62,3 +62,7 @@ class UserPasswordChangeSerializer(serializers.ModelSerializer):
         update_session_auth_hash(self.context.get('request'), instance)
 
         return instance
+
+
+class ActivationSerializer(serializers.Serializer):
+    pass

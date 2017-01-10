@@ -83,3 +83,15 @@ class LogoutView(views.APIView):
     def post(self, request, format=None):
         logout(request)
         return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+
+class PasswordChangeView(views.APIView):
+    pass
+
+
+class PasswordRestoreView(views.APIView):
+    pass
+
+
+class ActivationView(views.APIView):
+    pass
