@@ -18,11 +18,6 @@ class UserManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
 
-        user.email_user(
-            subject='PyJobs registration confirm',
-            message='Go to http://jobs.pyshop.ru/activation/?token=',
-            from_email='jobs_backend <noreply@jobs.pyshop.ru>'
-        )
         return user
 
     def create_user(self, email, password=None, **extra_fields):

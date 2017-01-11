@@ -5,6 +5,7 @@ from django.contrib.auth import (
 )
 
 from rest_framework import (
+    generics,
     mixins,
     permissions,
     status,
@@ -16,6 +17,7 @@ from rest_framework.response import Response
 
 from .models import User
 from . import serializers
+from . import utils
 
 
 class UserViewSet(mixins.CreateModelMixin,
@@ -44,6 +46,12 @@ class UserViewSet(mixins.CreateModelMixin,
         elif 'update' in action:
             return serializers.UserUpdateSerializer
         return self.serializer_class
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+
+        mail = utils.UserActivationEmail(self.request, user)
+        user.email_user(**dict(mail))
 
 
 class LoginView(views.APIView):
@@ -93,5 +101,18 @@ class PasswordRestoreView(views.APIView):
     pass
 
 
-class ActivationView(views.APIView):
-    pass
+class ActivationView(generics.GenericAPIView):
+    """
+    Activates user account if provided UID/token pair is valid
+    """
+    serializer_class = serializers.ActivationSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.user.is_active = True
+        serializer.user.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

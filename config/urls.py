@@ -5,12 +5,11 @@ from django.contrib import admin
 
 from rest_framework.routers import DefaultRouter
 
-from jobs_backend.users.views import UserViewSet, LoginView, LogoutView
+from jobs_backend.users import views
 
 
 router = DefaultRouter()
-# Here goes API endpoints registrations: router.register(r'foo', FooViewSet)
-router.register(r'users', UserViewSet)
+router.register(r'users', views.UserViewSet)
 
 
 urlpatterns = [
@@ -20,8 +19,12 @@ urlpatterns = [
     url(r'^api-auth/',
         include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/', include(router.urls)),
-    url(r'^api/auth/login/$', LoginView.as_view(), name='login'),
-    url(r'^api/auth/logout/$', LogoutView.as_view(), name='logout'),
+
+    url(r'^api/auth/login/$', views.LoginView.as_view(), name='login'),
+    url(r'^api/auth/logout/$', views.LogoutView.as_view(), name='logout'),
+    url(r'^api/account/activate/$',
+        views.ActivationView.as_view(),
+        name='activation'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

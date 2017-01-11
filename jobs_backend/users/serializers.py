@@ -1,7 +1,12 @@
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.tokens import default_token_generator
 
-from rest_framework import serializers
+from rest_framework import (
+    exceptions,
+    serializers,
+)
 
+from . import utils
 from .models import User
 
 
@@ -64,5 +69,35 @@ class UserPasswordChangeSerializer(serializers.ModelSerializer):
         return instance
 
 
-class ActivationSerializer(serializers.Serializer):
-    pass
+class UidTokenSerializer(serializers.Serializer):
+    """
+    Base UID and token serializer. Checks provided UID/token pair is valid
+    """
+    uid = serializers.CharField()
+    token = serializers.CharField()
+
+    def validate_uid(self, value):
+        try:
+            uid = utils.decode_uid(value)
+            self.user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+            raise serializers.ValidationError('Invalid UID')
+        return value
+
+    def validate(self, data):
+        data = super(UidTokenSerializer, self).validate(data)
+        if not default_token_generator.check_token(self.user, data['token']):
+            raise serializers.ValidationError('Invalid token')
+        return data
+
+
+class ActivationSerializer(UidTokenSerializer):
+    """
+    Checks UID/token pair is valid for activation
+    """
+    def validate(self, data):
+        data = super(ActivationSerializer, self).validate(data)
+        if self.user.is_active:
+            err = 'UID/token pair is invalid or user already activated'
+            raise exceptions.ParseError(err)
+        return data
