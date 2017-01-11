@@ -28,6 +28,12 @@ urlpatterns = [
     url(r'^api/account/password/reset/$',
         views.PasswordResetView.as_view(),
         name='password_reset'),
+    url(r'^api/account/password/reset/confirm/$',
+        views.PasswordResetConfirmView.as_view(),
+        name='password_reset_confirm'),
+    url(r'^api/account/password/change/$',
+        views.PasswordChangeView.as_view(),
+        name='password_change'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

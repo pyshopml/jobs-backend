@@ -51,24 +51,6 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-class UserPasswordChangeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('password',)
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
-
-    def update(self, instance, validated_data):
-        password = validated_data.get('password', None)
-        instance.set_password(password)
-        instance.save()
-
-        update_session_auth_hash(self.context.get('request'), instance)
-
-        return instance
-
-
 class UidTokenSerializer(serializers.Serializer):
     """
     Base UID and token serializer. Checks provided UID/token pair is valid
@@ -102,6 +84,7 @@ class ActivationSerializer(UidTokenSerializer):
             raise exceptions.ParseError(err)
         return data
 
+
 class PasswordResetSerializer(serializers.Serializer):
     """
     Checks registered active user with provided email
@@ -113,3 +96,33 @@ class PasswordResetSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'User with this email is not found')
         return value
+
+
+class PasswordsIdentitySerializer(serializers.Serializer):
+    """
+    Checks new password
+    """
+    # todo: Add password complexity validation
+    new_password = serializers.CharField()
+    new_password2 = serializers.CharField()
+
+    def validate(self, data):
+        data = super(PasswordsIdentitySerializer, self).validate(data)
+        if data['new_password'] != data['new_password2']:
+            raise serializers.ValidationError('Password mismatch')
+        return data
+
+
+class PasswordResetConfirmSerializer(UidTokenSerializer,
+                                     PasswordsIdentitySerializer):
+    """
+    Password check during password reset
+    """
+    pass
+
+
+class UserPasswordChangeSerializer(PasswordsIdentitySerializer):
+    """
+    Password change for current user
+    """
+    pass

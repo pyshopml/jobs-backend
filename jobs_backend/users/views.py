@@ -16,6 +16,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from .models import User
+from .mixins import PasswordChangeMixin
 from . import serializers
 from . import utils
 
@@ -93,8 +94,13 @@ class LogoutView(views.APIView):
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
-class PasswordChangeView(views.APIView):
-    pass
+class PasswordChangeView(PasswordChangeMixin, generics.GenericAPIView):
+    serializer_class = serializers.UserPasswordChangeSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        self.change_user_password(request)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class PasswordResetView(generics.GenericAPIView):
@@ -114,6 +120,18 @@ class PasswordResetView(generics.GenericAPIView):
         mail = utils.UserPasswordResetEmail(request, user)
         user.email_user(**dict(mail))
 
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PasswordResetConfirmView(PasswordChangeMixin, generics.GenericAPIView):
+    """
+    Resets password with new one
+    """
+    serializer_class = serializers.PasswordResetConfirmSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        self.change_user_password(request, invalidate_sessions=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
