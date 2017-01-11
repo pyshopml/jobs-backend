@@ -101,3 +101,15 @@ class ActivationSerializer(UidTokenSerializer):
             err = 'UID/token pair is invalid or user already activated'
             raise exceptions.ParseError(err)
         return data
+
+class PasswordResetSerializer(serializers.Serializer):
+    """
+    Checks registered active user with provided email
+    """
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        if not User.objects.filter(email=value, is_active=True).exists():
+            raise serializers.ValidationError(
+                'User with this email is not found')
+        return value

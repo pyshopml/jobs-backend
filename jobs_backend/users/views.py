@@ -97,8 +97,24 @@ class PasswordChangeView(views.APIView):
     pass
 
 
-class PasswordRestoreView(views.APIView):
-    pass
+class PasswordResetView(generics.GenericAPIView):
+    """
+    Sends password reset link to user's email
+    """
+    serializer_class = serializers.PasswordResetSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        user = User.objects.get(email=email, is_active=True)
+
+        mail = utils.UserPasswordResetEmail(request, user)
+        user.email_user(**dict(mail))
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ActivationView(generics.GenericAPIView):

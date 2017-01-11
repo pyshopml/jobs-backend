@@ -25,6 +25,9 @@ urlpatterns = [
     url(r'^api/account/activate/$',
         views.ActivationView.as_view(),
         name='activation'),
+    url(r'^api/account/password/reset/$',
+        views.PasswordResetView.as_view(),
+        name='password_reset'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

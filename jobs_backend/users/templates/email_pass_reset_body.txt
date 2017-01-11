@@ -1,0 +1,9 @@
+{% autoescape off %}
+Hi, {{ user.get_full_name }}!
+You (or someone else) requested a password reset for your user account at "{{ site }}".
+
+Please go to the following page and choose a new password:
+{{ protocol }}://{{ domain }}/{{ url }}
+
+If it's not you requested your password reset, just ignore this message.
+{% endautoescape %}
