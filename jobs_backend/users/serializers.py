@@ -1,4 +1,3 @@
-from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.tokens import default_token_generator
 
 from rest_framework import (
@@ -121,8 +120,12 @@ class PasswordResetConfirmSerializer(UidTokenSerializer,
     pass
 
 
-class UserPasswordChangeSerializer(PasswordsIdentitySerializer):
+class PasswordChangeSerializer(PasswordsIdentitySerializer):
     """
-    Password change for current user
+    Common password change serializer
     """
-    pass
+    current_password = serializers.CharField()
+
+    def validate_current_password(self, value):
+        if not self.context['request'].user.check_password(value):
+            raise exceptions.AuthenticationFailed('Current password is invalid')

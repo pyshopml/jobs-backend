@@ -95,7 +95,10 @@ class LogoutView(views.APIView):
 
 
 class PasswordChangeView(PasswordChangeMixin, generics.GenericAPIView):
-    serializer_class = serializers.UserPasswordChangeSerializer
+    """
+    Common password change view. Requires current password
+    """
+    serializer_class = serializers.PasswordChangeSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
