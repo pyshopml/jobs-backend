@@ -30,7 +30,7 @@ THIRD_PARTY_APPS = (
     'rest_framework',
 )
 LOCAL_APPS = (
-    # Your stuff: custom apps go here
+    'jobs_backend.vacancies',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
