@@ -3,20 +3,22 @@ from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
 
-from rest_framework.routers import DefaultRouter
+from jobs_backend.users.urls import users, account
 
-
-router = DefaultRouter()
-# Here goes API endpoints registrations: router.register(r'foo', FooViewSet)
-
+# All api endpoints should be included here
+api_urlpatterns = [
+    url(r'^', include(users)),
+    url(r'^account/', include(account)),
+]
 
 urlpatterns = [
     # Django Admin, use {% url 'admin:index' %}
     url(settings.ADMIN_URL, admin.site.urls),
-    # Your stuff: custom urls includes go here
+
+    url(r'^api/', include(api_urlpatterns)),
+
     url(r'^api-auth/',
         include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^api/', include(router.urls)),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

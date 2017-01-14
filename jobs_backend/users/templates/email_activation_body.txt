@@ -1,0 +1,6 @@
+{% autoescape off %}
+Account activation on "{{ site }}".
+
+Please go to the following page to activate account:
+{{ protocol }}://{{ domain }}/{{ url }}
+{% endautoescape %}

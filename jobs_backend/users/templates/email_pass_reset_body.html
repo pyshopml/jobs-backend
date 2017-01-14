@@ -1,0 +1,16 @@
+{% autoescape off %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <p>Hi, {{ user.get_full_name }}!</p>
+    <p>You (or someone else) requested a password reset for your user account at "{{ site }}".</p>
+
+    <p>Please go to the following <a href="{{ protocol }}://{{ domain }}/{{ url }}">page</a> and choose a new password</p>
+
+    <p>If it's not you requested your password reset, just ignore this message.</p>
+</body>
+</html>
+{% endautoescape %}
