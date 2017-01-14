@@ -8,6 +8,7 @@ from jobs_backend.users.urls import users, account
 # All api endpoints should be included here
 api_urlpatterns = [
     url(r'^', include(users)),
+    url(r'^', include('jobs_backend.vacancies.urls')),
     url(r'^account/', include(account)),
 ]
 

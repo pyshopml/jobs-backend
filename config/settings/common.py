@@ -31,6 +31,7 @@ THIRD_PARTY_APPS = (
 )
 LOCAL_APPS = (
     'jobs_backend.users',
+    'jobs_backend.vacancies',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
