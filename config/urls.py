@@ -3,13 +3,19 @@ from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
 
-from jobs_backend.users.urls import users, account
+from rest_framework.routers import DefaultRouter
+
+from jobs_backend.users.views import UserViewSet
+from jobs_backend.vacancies.views import VacancyViewSet
+
+router = DefaultRouter()
+router.register(r'users', UserViewSet)
+router.register(r'vacancy', VacancyViewSet)
 
 # All api endpoints should be included here
 api_urlpatterns = [
-    url(r'^', include(users)),
-    url(r'^', include('jobs_backend.vacancies.urls')),
-    url(r'^account/', include(account)),
+    url(r'^', include(router.urls)),
+    url(r'^account/', include('jobs_backend.users.urls.account')),
 ]
 
 urlpatterns = [
