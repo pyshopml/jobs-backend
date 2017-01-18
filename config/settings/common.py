@@ -30,6 +30,7 @@ THIRD_PARTY_APPS = (
     'rest_framework',
 )
 LOCAL_APPS = (
+    'jobs_backend.users',
     'jobs_backend.vacancies',
 )
 
@@ -199,8 +200,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 # Custom user app defaults
-# todo: change AUTH_USER_MODEL after adding custom model
-# AUTH_USER_MODEL = ''
+AUTH_USER_MODEL = 'users.User'
 
 # Location of root django.contrib.admin URL, use {% url 'admin:index' %}
 ADMIN_URL = r'^admin/'
@@ -209,6 +209,8 @@ ADMIN_URL = r'^admin/'
 # ------------------------------------------------------------------------------
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+        # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        # 'rest_framework.permissions.AllowAny',
     ],
 }
