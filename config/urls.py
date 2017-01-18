@@ -5,7 +5,8 @@ from django.contrib import admin
 
 
 api_urlpatterns = [
-    url(r'^', include('jobs_backend.vacancies.urls')),
+    url(r'^vacancies/',
+        include('jobs_backend.vacancies.urls', namespace='vacancies')),
 ]
 
 urlpatterns = [
