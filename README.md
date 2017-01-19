@@ -1,7 +1,9 @@
 jobs-backend
 ===
 
-Fresh start
+How-to run local copy of project
+
+Begin
 ---
 
 Create directory for project's files: 
@@ -72,7 +74,8 @@ Apply migrations to create database structure:
 Run
 ---
 
-    python manage.py runserver
+Start Django development server:
 
+    python manage.py runserver
 
 Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your web-browser
