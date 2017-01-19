@@ -6,3 +6,6 @@ class Vacancy(models.Model):
     description = models.TextField(max_length=1000)
     created_on = models.DateTimeField(auto_now_add=True)
     modified_on = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
