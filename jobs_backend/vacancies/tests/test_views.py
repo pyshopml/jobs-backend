@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from rest_framework import status
@@ -8,17 +7,13 @@ from jobs_backend.vacancies.models import Vacancy
 from jobs_backend.users.tests.factories import ActiveUserFactory
 from . import factories
 
-User = get_user_model()
-
 
 class VacancyViewSetTestCase(APITestCase):
+    url_create = 'vacancies:vacancy-list'
+    url_detail = 'vacancies:vacancy-detail'
+    url_list = 'vacancies:vacancy-list'
 
-    def setUp(self):
-        self.url_create = 'vacancies:vacancy-list'
-        self.url_detail = 'vacancies:vacancy-detail'
-        self.url_list = 'vacancies:vacancy-list'
-
-    def test_vacancies_list_empty(self):
+    def test_list_vacancies_empty(self):
         """
         If there are no vacancies we will get empty list
         """
@@ -92,5 +87,5 @@ class VacancyViewSetTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Vacancy.objects.count(), 1)
-        self.assertEqual(response.data.get('title'), 'awesome vacancy')
-        self.assertEqual(response.data.get('description'), 'be awesome')
+        self.assertEqual(response.data.get('title'), data['title'])
+        self.assertEqual(response.data.get('description'), data['description'])
