@@ -54,3 +54,9 @@ TEMPLATES[0]['OPTIONS']['loaders'] = [
         'django.template.loaders.app_directories.Loader',
     ]),
 ]
+
+# 3rd party library settings
+# ------------------------------------------------------------------------------
+REST_FRAMEWORK.update({
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json'
+})

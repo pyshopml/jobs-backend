@@ -13,37 +13,69 @@ User = get_user_model()
 class VacancyViewSetTestCase(APITestCase):
 
     def setUp(self):
-        self.url_create = reverse('vacancies:vacancy-list')
-        self.url_detail = reverse('vacancies:vacancy-detail', args=(1,))
-        self.url_list = reverse('vacancies:vacancy-list')
+        self.url_create = 'vacancies:vacancy-list'
+        self.url_detail = 'vacancies:vacancy-detail'
+        self.url_list = 'vacancies:vacancy-list'
 
-        self.vacancies = factories.VacancyFactory.create_batch(2)
+    def test_vacancies_list_empty(self):
+        """
+        If there are no vacancies we will get empty list
+        """
+        url = reverse(self.url_list)
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertListEqual(response.data, list())
 
     def test_list_vacancies(self):
-        response = self.client.get(self.url_list, format='json')
+        """
+        Checks if have vacancies we should see them
+        """
+        factories.VacancyFactory.create_batch(2)
+        url = reverse(self.url_list)
+
+        response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Vacancy.objects.count(), 2)
-        self.assertEqual(list(Vacancy.objects.all()), self.vacancies)
+        self.assertEqual(len(response.data), Vacancy.objects.count())
 
     def test_detail_vacancy(self):
-        vacancy = Vacancy.objects.get(id=1)
+        """
+        Checks retrieved data for existed vacancy object
+        """
+        obj = factories.VacancyFactory.create()
+        url = reverse(self.url_detail, args=(1,))
 
-        response = self.client.get(self.url_detail)
+        response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(vacancy.id, response.data.get('id'))
-        self.assertEqual(vacancy.title, response.data.get('title'))
-        self.assertEqual(vacancy.description, response.data.get('description'))
+        self.assertEqual(response.data.get('id'), obj.id)
+        self.assertEqual(response.data.get('title'), obj.title)
+        self.assertEqual(response.data.get('description'), obj.description)
+
+    def test_detail_vacancy_not_found(self):
+        """
+        Getting message about non-existent vacancy
+        """
+        url = reverse(self.url_detail, args=(1,))
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn('Not found', response.data.get('detail', ''))
 
     def test_unauth_create_vacancy(self):
+        """
+        Attempt to create a vacancy without authorization
+        """
         data = {'title': 'awesome vacancy',
                 'description': 'be awesome'}
-
-        response = self.client.post(self.url_create, data, format='json')
+        url = reverse(self.url_create)
+        response = self.client.post(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(Vacancy.objects.count(), 2)
+        self.assertEqual(Vacancy.objects.count(), 0)
 
     # def test_auth_create_vacancy(self):
     #     url = reverse('vacancies:vacancy-list')
