@@ -9,6 +9,7 @@ class BaseUserFactory(factory.DjangoModelFactory):
 
     name = factory.Sequence(lambda n: 'name%s' % (n+1))
     email = factory.LazyAttribute(lambda obj: '%s@example.com' % obj.name)
+    password = factory.PostGenerationMethodCall('set_password', 'secret')
 
 
 class ActiveUserFactory(BaseUserFactory):
