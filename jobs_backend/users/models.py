@@ -2,6 +2,7 @@ from django.db import models
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.urls import reverse
 
 
 class UserManager(BaseUserManager):
@@ -74,3 +75,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         Sends an email to User
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('users:user-detail', kwargs={'pk': self.pk})
