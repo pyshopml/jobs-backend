@@ -1,6 +1,6 @@
 import factory
 
-from jobs_backend.vacancies.models import Vacancy
+from ..models import Vacancy
 
 
 class VacancyFactory(factory.DjangoModelFactory):
