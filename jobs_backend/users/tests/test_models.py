@@ -53,6 +53,7 @@ class UserManagerTestCase(TestCase):
     def test_ok_common_create_user(self):
         user = User.objects._create_user(**self.data)
 
+        self.assertIsInstance(user, User)
         self.assertTrue(user.pk)
         self.assertEqual(user.email, self.data['email'])
         self.assertEqual(user.name, self.data['name'])
@@ -64,6 +65,11 @@ class UserManagerTestCase(TestCase):
         self.assertTrue(user.has_usable_password())
         self.assertTrue(user.check_password(self.data['password']))
 
+    def test_ok_common_create_user_without_name(self):
+        del self.data['name']
+        user = User.objects._create_user(**self.data)
+        self.assertEqual(user.name, '')
+
     def test_fail_common_create_user_with_empty_email(self):
         self.data['email'] = ''
         self.assertRaises(ValueError, User.objects._create_user, **self.data)
@@ -72,3 +78,25 @@ class UserManagerTestCase(TestCase):
         self.data['email'] = 'obi-wan.kenobi@ExAmPlE.cOm'
         user = User.objects._create_user(**self.data)
         self.assertEqual(user.email, 'obi-wan.kenobi@example.com')
+
+    def test_ok_create_user(self):
+        user = User.objects.create_user(**self.data)
+        self.assertFalse(user.is_active)
+        self.assertFalse(user.is_superuser)
+
+    def test_fail_create_user_with_empty_password(self):
+        del self.data['password']
+        user = User.objects.create_user(**self.data)
+        self.assertFalse(user.has_usable_password())
+
+    def test_ok_create_superuser(self):
+        user = User.objects.create_superuser(**self.data)
+        self.assertTrue(user.is_active)
+        self.assertTrue(user.is_superuser)
+        self.assertTrue(user.is_staff)
+
+    def test_fail_create_superuser_with_false_is_superuser(self):
+        self.data['is_superuser'] = False
+        self.assertRaises(
+            ValueError, User.objects.create_superuser, **self.data
+        )
