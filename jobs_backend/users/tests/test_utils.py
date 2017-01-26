@@ -55,7 +55,7 @@ class UserEmailBaseTest(TestCase):
                 'protocol': self.req.scheme,
                 'domain': 'testserver',
                 'site': email.site,
-                'uid': 'MQ',
+                'uid': utils.encode_uid(self.user.pk),
                 'token': pregenerated_token,
             }
         )

@@ -21,7 +21,8 @@ class UserEmailBase(object):
     url = None
 
     def __init__(self, request, user, from_email=None):
-        self.from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', from_email)
+        self.from_email = from_email if from_email \
+            else getattr(settings, 'DEFAULT_FROM_EMAIL')
         self.user = user or request.user
         self.protocol = 'https' if request.is_secure() else 'http'
         self.site = get_current_site(request)
