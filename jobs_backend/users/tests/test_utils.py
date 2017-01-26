@@ -64,3 +64,42 @@ class UserEmailBaseTest(TestCase):
         email = utils.UserEmailBase(self.req, self.user)
         with self.assertRaises(TemplateDoesNotExist):
             dict(email)
+
+
+class UserActivationEmailTest(TestCase):
+
+    def setUp(self):
+        self.rf = RequestFactory()
+        self.req = self.rf.get('/')
+        self.user = factories.ActiveUserFactory.create()
+
+    def test_ok_url_format(self):
+        email = utils.UserActivationEmail(self.req, self.user)
+
+        uid = utils.encode_uid(email.user.pk)
+        token = default_token_generator.make_token(email.user)
+
+        url = email.get_context().get('url')
+        self.assertEqual(
+            url, 'account/activate/?uid=%s&token=%s' % (uid, token)
+        )
+
+
+class UserPasswordResetEmailTest(TestCase):
+
+    def setUp(self):
+        self.rf = RequestFactory()
+        self.req = self.rf.get('/')
+        self.user = factories.ActiveUserFactory.create()
+
+    def test_ok_url_format(self):
+        email = utils.UserPasswordResetEmail(self.req, self.user)
+
+        uid = utils.encode_uid(email.user.pk)
+        token = default_token_generator.make_token(email.user)
+
+        url = email.get_context().get('url')
+        self.assertEqual(
+            url,
+            'account/password/reset/confirm/?uid=%s&token=%s' % (uid, token)
+        )
