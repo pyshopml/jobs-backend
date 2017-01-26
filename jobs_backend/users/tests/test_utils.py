@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
-from django.test import TestCase, RequestFactory, override_settings
+from django.template.exceptions import TemplateDoesNotExist
+from django.test import TestCase, RequestFactory
 
 from . import factories
 from .. import utils
@@ -29,7 +30,6 @@ class UserEmailBaseTest(TestCase):
         self.rf = RequestFactory()
         self.req = self.rf.get('/')
         self.user = factories.ActiveUserFactory.create()
-        # self.req.user = self.user
 
     def test_ok_init(self):
         email = utils.UserEmailBase(self.req, self.user)
@@ -59,3 +59,8 @@ class UserEmailBaseTest(TestCase):
                 'token': pregenerated_token,
             }
         )
+
+    def test_fail_iter_render_templates(self):
+        email = utils.UserEmailBase(self.req, self.user)
+        with self.assertRaises(TemplateDoesNotExist):
+            dict(email)
