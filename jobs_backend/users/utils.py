@@ -52,25 +52,25 @@ class UserEmailBase(object):
         }
 
 
-class UserActivationEmail(UserEmailBase):
+class UserEmailUrlMixin(object):
+    """
+    Adds formated url to base context
+    """
+    def get_context(self):
+        context = super(UserEmailUrlMixin, self).get_context()
+        context['url'] = self.url.format(**context)
+        return context
+
+
+class UserActivationEmail(UserEmailUrlMixin, UserEmailBase):
     mail_subject = 'Account activation'
     plaintext_body_template = 'email_activation_body.txt'
     html_body_template = 'email_activation_body.html'
     url = 'account/activate/?uid={uid}&token={token}'
 
-    def get_context(self):
-        context = super(UserActivationEmail, self).get_context()
-        context['url'] = self.url.format(**context)
-        return context
 
-
-class UserPasswordResetEmail(UserEmailBase):
+class UserPasswordResetEmail(UserEmailUrlMixin, UserEmailBase):
     mail_subject = 'Password reset'
     plaintext_body_template = 'email_pass_reset_body.txt'
     html_body_template = 'email_pass_reset_body.html'
     url = 'account/password/reset/confirm/?uid={uid}&token={token}'
-
-    def get_context(self):
-        context = super(UserPasswordResetEmail, self).get_context()
-        context['url'] = self.url.format(**context)
-        return context
