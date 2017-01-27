@@ -84,6 +84,18 @@ class UserActivationEmailTest(TestCase):
             url, 'account/activate/?uid=%s&token=%s' % (uid, token)
         )
 
+    def test_ok_template_renders(self):
+        email = utils.UserActivationEmail(self.req, self.user)
+        try:
+            dict(email)
+        except TemplateDoesNotExist as e:
+            self.fail('Error occurred during template render: %s' % e)
+
+    def test_ok_activation_template(self):
+        email = utils.UserActivationEmail(self.req, self.user)
+        self.assertIn('activation', dict(email)['message'])
+        self.assertIn('activation', dict(email)['html_message'])
+
 
 class UserPasswordResetEmailTest(TestCase):
 
@@ -103,3 +115,15 @@ class UserPasswordResetEmailTest(TestCase):
             url,
             'account/password/reset/confirm/?uid=%s&token=%s' % (uid, token)
         )
+
+    def test_ok_template_renders(self):
+        email = utils.UserPasswordResetEmail(self.req, self.user)
+        try:
+            dict(email)
+        except TemplateDoesNotExist as e:
+            self.fail('Error occurred during template render: %s' % e)
+
+    def test_ok_password_reset_template(self):
+        email = utils.UserPasswordResetEmail(self.req, self.user)
+        self.assertIn('password reset', dict(email)['message'])
+        self.assertIn('password reset', dict(email)['html_message'])
