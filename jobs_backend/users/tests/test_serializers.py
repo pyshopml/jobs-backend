@@ -1,11 +1,8 @@
 from unittest import TestCase
 
-from django.contrib.auth import get_user_model
-
-from . import factories
 from .. import serializers
-
-User = get_user_model()
+from ..models import User
+from . import factories
 
 
 class UserRetrieveSerializerTestCase(TestCase):
@@ -33,11 +30,22 @@ class UserCreateSerializerTestCase(TestCase):
             'password': "These aren't the Droids your looking for",
         }
 
+    def tearDown(self):
+        User.objects.all().delete()
+
     def test_ok_valid_save(self):
         serializer = serializers.UserCreateSerializer(data=self.data)
         self.assertTrue(serializer.is_valid())
 
         serializer.save()
+        self.assertEqual(User.objects.count(), 1)
+
+    def test_ok_create(self):
+        serializer = serializers.UserCreateSerializer(data=self.data)
+        self.assertTrue(serializer.is_valid())
+
+        user = serializer.create(serializer.validated_data)
+        self.assertIsInstance(user, User)
         self.assertEqual(User.objects.count(), 1)
 
     def test_fail_required_field(self):
