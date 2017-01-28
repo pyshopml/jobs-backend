@@ -7,7 +7,7 @@ from . import factories
 from .. import utils
 
 
-class UIDTest(TestCase):
+class UIDTestCase(TestCase):
 
     def test_ok_encode_uid(self):
         self.assertEqual(utils.encode_uid(1), 'MQ')
@@ -24,7 +24,7 @@ class UIDTest(TestCase):
         )
 
 
-class UserEmailBaseTest(TestCase):
+class UserEmailBaseTestCase(TestCase):
 
     def setUp(self):
         self.rf = RequestFactory()
@@ -66,7 +66,7 @@ class UserEmailBaseTest(TestCase):
             dict(email)
 
 
-class UserActivationEmailTest(TestCase):
+class UserActivationEmailTestCase(TestCase):
 
     def setUp(self):
         self.rf = RequestFactory()
@@ -97,7 +97,7 @@ class UserActivationEmailTest(TestCase):
         self.assertIn('activation', dict(email)['html_message'])
 
 
-class UserPasswordResetEmailTest(TestCase):
+class UserPasswordResetEmailTestCase(TestCase):
 
     def setUp(self):
         self.rf = RequestFactory()
