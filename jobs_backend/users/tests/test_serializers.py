@@ -55,3 +55,10 @@ class UserCreateSerializerTestCase(TestCase):
 
                 self.assertIn(field, serializer.errors)
                 self.assertIn('required', serializer.errors[field][0])
+
+    def test_ok_optional_fields(self):
+        del self.data['name']
+        serializer = serializers.UserCreateSerializer(data=self.data)
+
+        self.assertTrue(serializer.is_valid())
+        self.assertNotIn('name', serializer.data)
