@@ -148,3 +148,24 @@ class ActivationSerializerTestCase(TestCase):
         serializer = serializers.ActivationSerializer(data=self.data)
 
         self.assertRaises(ParseError, serializer.is_valid)
+
+
+class PasswordResetSerializerTestCase(TestCase):
+
+    def setUp(self):
+        self.user = factories.ActiveUserFactory.create()
+        self.data = {
+            'email': self.user.email
+        }
+
+    def test_ok_validate_email(self):
+        serializer = serializers.PasswordResetSerializer(data=self.data)
+        self.assertTrue(serializer.is_valid())
+
+    def test_fail_validate_email(self):
+        self.user.is_active = False
+        self.user.save()
+        serializer = serializers.PasswordResetSerializer(data=self.data)
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('email', serializer.errors)
