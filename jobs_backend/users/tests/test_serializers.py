@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from django.contrib.auth.tokens import default_token_generator
+from rest_framework.exceptions import ParseError
 
 from .. import serializers
 from .. import utils
@@ -122,3 +123,28 @@ class UidTokenSerializerTestCase(TestCase):
 
         self.assertFalse(serializer.is_valid())
         self.assertIn(['Invalid token'], serializer.errors.values())
+
+
+class ActivationSerializerTestCase(TestCase):
+
+    def setUp(self):
+        self.user = factories.BaseUserFactory.create()
+        self.data = {
+            'uid': utils.encode_uid(self.user.pk),
+            'token': default_token_generator.make_token(self.user)
+        }
+
+    def tearDown(self):
+        User.objects.all().delete()
+
+    def test_ok_validate(self):
+        serializer = serializers.ActivationSerializer(data=self.data)
+        self.assertTrue(serializer.is_valid())
+        self.assertDictEqual(serializer.data, self.data)
+
+    def test_fail_validate(self):
+        self.user.is_active = True
+        self.user.save()
+        serializer = serializers.ActivationSerializer(data=self.data)
+
+        self.assertRaises(ParseError, serializer.is_valid)
