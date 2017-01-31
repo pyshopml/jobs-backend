@@ -169,3 +169,23 @@ class PasswordResetSerializerTestCase(TestCase):
 
         self.assertFalse(serializer.is_valid())
         self.assertIn('email', serializer.errors)
+
+
+class PasswordsIdentitySerializerTestCase(TestCase):
+
+    def setUp(self):
+        self.data = {
+            'new_password': 'secret',
+            'new_password2': 'secret'
+        }
+
+    def test_ok_validate(self):
+        serializer = serializers.PasswordsIdentitySerializer(data=self.data)
+        self.assertTrue(serializer.is_valid())
+
+    def test_fail_validate(self):
+        self.data['new_password2'] = 'public'
+        serializer = serializers.PasswordsIdentitySerializer(data=self.data)
+        self.assertFalse(serializer.is_valid())
+        self.assertDictEqual(serializer.validated_data, {})
+
