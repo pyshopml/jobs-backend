@@ -1,7 +1,8 @@
 from unittest import TestCase
 
 from django.contrib.auth.tokens import default_token_generator
-from rest_framework.exceptions import ParseError
+from django.test import RequestFactory
+from rest_framework.exceptions import ParseError, AuthenticationFailed
 
 from .. import serializers
 from .. import utils
@@ -189,3 +190,28 @@ class PasswordsIdentitySerializerTestCase(TestCase):
         self.assertFalse(serializer.is_valid())
         self.assertDictEqual(serializer.validated_data, {})
 
+
+class PasswordChangeSerializerTestCase(TestCase):
+
+    def setUp(self):
+        self.user = factories.ActiveUserFactory.create()
+        self.data = {
+            'new_password': 'shadow',
+            'new_password2': 'shadow',
+            'current_password': 'secret',
+        }
+        self.rf = RequestFactory()
+        self.req = self.rf.get('/')
+        self.req.user = self.user
+
+    def test_ok_current_password(self):
+        serializer = serializers.PasswordChangeSerializer(data=self.data)
+        serializer.context['request'] = self.req
+        self.assertTrue(serializer.is_valid())
+
+    def test_fail_current_password(self):
+        self.data['current_password'] = 'public'
+        serializer = serializers.PasswordChangeSerializer(data=self.data)
+        serializer.context['request'] = self.req
+
+        self.assertRaises(AuthenticationFailed, serializer.is_valid)
