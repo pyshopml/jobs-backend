@@ -39,6 +39,7 @@ class UserCreateSerializerTestCase(TestCase):
 
         serializer.save()
         self.assertEqual(User.objects.count(), 1)
+        self.assertNotIn('password', serializer.data)
 
     def test_ok_create(self):
         serializer = serializers.UserCreateSerializer(data=self.data)
