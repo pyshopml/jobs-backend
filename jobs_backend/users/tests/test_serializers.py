@@ -1,6 +1,9 @@
 from unittest import TestCase
 
+from django.contrib.auth.tokens import default_token_generator
+
 from .. import serializers
+from .. import utils
 from ..models import User
 from . import factories
 
@@ -91,3 +94,31 @@ class UserUpdateSerializerTestCase(TestCase):
             # Check that we have updated the existing object and not create new
             self.assertEqual(serializer.instance.pk, self.user.pk)
             self.assertEqual(serializer.data['name'], self.data['name'])
+
+
+class UidTokenSerializerTestCase(TestCase):
+
+    def setUp(self):
+        self.user = factories.BaseUserFactory.create()
+        self.data = {
+            'uid': utils.encode_uid(self.user.pk),
+            'token': default_token_generator.make_token(self.user)
+        }
+
+    def test_ok_validate(self):
+        serializer = serializers.UidTokenSerializer(data=self.data)
+        self.assertTrue(serializer.is_valid())
+
+    def test_fail_validate_uid(self):
+        self.data['uid'] = utils.encode_uid(999)
+        serializer = serializers.UidTokenSerializer(data=self.data)
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn(['Invalid UID'], serializer.errors.values())
+
+    def test_fail_validate_token(self):
+        self.data['token'] = 'aBcd-1234'
+        serializer = serializers.UidTokenSerializer(data=self.data)
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn(['Invalid token'], serializer.errors.values())
