@@ -71,3 +71,23 @@ class UserCreateSerializerTestCase(TestCase):
 
         self.assertTrue(serializer.is_valid())
         self.assertNotIn('name', serializer.data)
+
+
+class UserUpdateSerializerTestCase(TestCase):
+
+    def setUp(self):
+        self.user = factories.ActiveUserFactory.create()
+        self.data = {
+            'name': 'Obi-Wan Kenobi'
+        }
+
+    def tearDown(self):
+        User.objects.all().delete()
+
+    def test_ok_change_name(self):
+        serializer = serializers.UserUpdateSerializer(self.user, self.data)
+        if serializer.is_valid():
+            serializer.save()
+            # Check that we have updated the existing object and not create new
+            self.assertEqual(serializer.instance.pk, self.user.pk)
+            self.assertEqual(serializer.data['name'], self.data['name'])
