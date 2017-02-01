@@ -158,3 +158,69 @@ class LogoutViewTestCase(APITestCase):
         factories.ActiveUserFactory.create()
         response = self.client.post(self.url_logout)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class PasswordChangeViewTestCase(APITestCase):
+    url_login = reverse('account:login')
+    url_pwd_change = reverse('account:password_change')
+
+    def setUp(self):
+        self.user = factories.ActiveUserFactory.create()
+        self.auth = {
+            'email': self.user.email,
+            'password': 'secret'
+        }
+        self.data = {
+            'new_password': 'shadow',
+            'new_password2': 'shadow',
+            'current_password': 'secret',
+        }
+
+    def tearDown(self):
+        User.objects.all().delete()
+
+    def test_ok_successful_change(self):
+        login_response = self.client.post(self.url_login, self.auth)
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+
+        response = self.client.post(self.url_pwd_change, self.data)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_fail_not_auth(self):
+        self.assertFalse(dict(self.client.session))
+        response = self.client.post(self.url_pwd_change, self.data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_fail_wrong_current_password(self):
+        login_response = self.client.post(self.url_login, self.auth)
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+
+        self.data['current_password'] = 'invalid'
+        response = self.client.post(self.url_pwd_change, self.data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn('invalid', response.data['detail'])
+
+    def test_fail_new_password_mismatch(self):
+        login_response = self.client.post(self.url_login, self.auth)
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+
+        self.data['new_password2'] = 'invalid'
+        response = self.client.post(self.url_pwd_change, self.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_fail_required_fields(self):
+        for field in ['new_password', 'new_password2', 'current_password']:
+            with self.subTest(field=field):
+                login_response = self.client.post(self.url_login, self.auth)
+                self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+
+                data = self.data.copy()
+                del data[field]
+
+                response = self.client.post(self.url_pwd_change, data)
+
+                self.assertEqual(
+                    response.status_code, status.HTTP_400_BAD_REQUEST
+                )
+                self.assertIn(field, response.data)
+                self.assertIn('required', response.data[field][0])
