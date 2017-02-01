@@ -97,3 +97,37 @@ class UserViewSetTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertDictEqual(response.data, data)
         self.assertTrue(User.objects.get(name='Jane Doe'))
+
+
+class LoginViewTestCase(APITestCase):
+    url = reverse('account:login')
+
+    def setUp(self):
+        self.user = factories.ActiveUserFactory.create()
+        self.data = {
+            'email': self.user.email,
+            'password': 'secret'
+        }
+
+    def tearDown(self):
+        User.objects.all().delete()
+
+    def test_ok_login(self):
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_fail_email(self):
+        self.data['email'] = 'invalid@example.com'
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_fail_password(self):
+        self.data['password'] = 'invalid'
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_fail_user_inactive(self):
+        self.user.is_active = False
+        self.user.save()
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
