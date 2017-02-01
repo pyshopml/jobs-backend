@@ -131,3 +131,30 @@ class LoginViewTestCase(APITestCase):
         self.user.save()
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class LogoutViewTestCase(APITestCase):
+    url_login = reverse('account:login')
+    url_logout = reverse('account:logout')
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        User.objects.all().delete()
+
+    def test_ok_successful_logout(self):
+        user = factories.ActiveUserFactory.create()
+        data = {'email': user.email, 'password': 'secret'}
+        login_response = self.client.post(self.url_login, data)
+        self.assertTrue(login_response.status_code, status.HTTP_200_OK)
+
+        response = self.client.post(self.url_logout)
+
+        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(dict(self.client.session))
+
+    def test_fail_not_auth(self):
+        factories.ActiveUserFactory.create()
+        response = self.client.post(self.url_logout)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
