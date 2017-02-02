@@ -1,9 +1,11 @@
+from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.urls import reverse
 
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from .. import utils
 from ..models import User
 from . import factories
 
@@ -155,7 +157,6 @@ class LogoutViewTestCase(APITestCase):
 
 
 class PasswordChangeViewTestCase(APITestCase):
-    url_login = reverse('account:login')
     url_pwd_change = reverse('account:password_change')
 
     def setUp(self):
@@ -237,3 +238,25 @@ class PasswordResetViewTestCase(APITestCase):
         self.user.save()
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class PasswordResetConfirmViewTestCase(APITestCase):
+    url = reverse('account:password_reset_confirm')
+
+    def setUp(self):
+        self.user = factories.ActiveUserFactory.create()
+        uid = utils.encode_uid(self.user.pk)
+        token = default_token_generator.make_token(self.user)
+        self.data = {
+            'uid': uid,
+            'token': token,
+            'new_password': 'shadow',
+            'new_password2': 'shadow',
+        }
+
+    def tearDown(self):
+        User.objects.all().delete()
+
+    def test_ok_successful_change(self):
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
