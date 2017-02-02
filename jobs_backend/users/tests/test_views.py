@@ -206,3 +206,34 @@ class PasswordChangeViewTestCase(APITestCase):
                 )
                 self.assertIn(field, response.data)
                 self.assertIn('required', response.data[field][0])
+
+
+class PasswordResetViewTestCase(APITestCase):
+    url = reverse('account:password_reset')
+
+    def setUp(self):
+        self.user = factories.ActiveUserFactory.create()
+        self.data = {
+            'email': self.user.email
+        }
+
+    def tearDown(self):
+        pass
+
+    def test_ok_successful_change(self):
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(self.data['email'], mail.outbox[0].to)
+        self.assertIn('password', mail.outbox[0].subject.lower())
+
+    def test_fail_invalid_email(self):
+        self.data['email'] = 'invalid@example.com'
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_fail_inactive_user(self):
+        self.user.is_active = False
+        self.user.save()
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
