@@ -292,3 +292,44 @@ class PasswordResetConfirmViewTestCase(APITestCase):
                 )
                 self.assertIn(field, response.data)
                 self.assertIn('required', response.data[field][0])
+
+
+class ActivationViewTestCase(APITestCase):
+    url = reverse('account:activation')
+
+    def setUp(self):
+        self.user = factories.BaseUserFactory.create()
+        uid = utils.encode_uid(self.user.pk)
+        token = default_token_generator.make_token(self.user)
+        self.data = {
+            'uid': uid,
+            'token': token
+        }
+
+    def test_ok_successful_activation(self):
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertTrue(User.objects.get(pk=self.user.pk).is_active)
+
+    def test_fail_user_already_activated(self):
+        self.user.is_active = True
+        self.user.save()
+        response = self.client.post(self.url, self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('activated', response.data['detail'])
+        self.assertIn('UID/token', response.data['detail'])
+
+    def test_fail_required_fields(self):
+        for field in ['uid', 'token']:
+            with self.subTest(field=field):
+                data = self.data.copy()
+                del data[field]
+
+                response = self.client.post(self.url, data)
+
+                self.assertEqual(
+                    response.status_code, status.HTTP_400_BAD_REQUEST
+                )
+                self.assertIn(field, response.data)
+                self.assertIn('required', response.data[field][0])
