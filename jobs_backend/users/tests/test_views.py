@@ -260,3 +260,35 @@ class PasswordResetConfirmViewTestCase(APITestCase):
     def test_ok_successful_change(self):
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_fail_invalid_uid(self):
+        self.data['uid'] = 'invalid'
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(['Invalid UID'], response.data.values())
+
+    def test_fail_invalid_token(self):
+        self.data['token'] = 'invalid'
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(['Invalid token'], response.data.values())
+
+    def test_fail_password_mismatch(self):
+        self.data['new_password2'] = 'invalid'
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(['Password mismatch'], response.data.values())
+
+    def test_fail_required_fields(self):
+        for field in ['uid', 'token', 'new_password', 'new_password2']:
+            with self.subTest(field=field):
+                data = self.data.copy()
+                del data[field]
+
+                response = self.client.post(self.url, data)
+
+                self.assertEqual(
+                    response.status_code, status.HTTP_400_BAD_REQUEST
+                )
+                self.assertIn(field, response.data)
+                self.assertIn('required', response.data[field][0])
