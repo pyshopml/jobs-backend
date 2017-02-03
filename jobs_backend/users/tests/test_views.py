@@ -175,6 +175,9 @@ class PasswordChangeViewTestCase(APITestCase):
         response = self.client.post(self.url_pwd_change, self.data)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
+        user = User.objects.get(pk=self.user.pk)
+        self.assertTrue(user.check_password(self.data['new_password']))
+
     def test_fail_not_auth(self):
         self.assertFalse(dict(self.client.session))
         response = self.client.post(self.url_pwd_change, self.data)
@@ -260,6 +263,9 @@ class PasswordResetConfirmViewTestCase(APITestCase):
     def test_ok_successful_change(self):
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        user = User.objects.get(pk=self.user.pk)
+        self.assertTrue(user.check_password(self.data['new_password']))
 
     def test_fail_invalid_uid(self):
         self.data['uid'] = 'invalid'
