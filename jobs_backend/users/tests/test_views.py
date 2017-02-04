@@ -116,16 +116,21 @@ class LoginViewTestCase(APITestCase):
     def test_ok_login(self):
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.user.id)
+        self.assertEqual(response.data['email'], self.user.email)
+        self.assertEqual(response.data['name'], self.user.name)
 
     def test_fail_email(self):
         self.data['email'] = 'invalid@example.com'
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('invalid credentials', response.data['message'].lower())
 
     def test_fail_password(self):
         self.data['password'] = 'invalid'
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('invalid credentials', response.data['message'].lower())
 
     def test_fail_user_inactive(self):
         self.user.is_active = False
@@ -135,7 +140,7 @@ class LoginViewTestCase(APITestCase):
 
 
 class LogoutViewTestCase(APITestCase):
-    url_logout = reverse('account:logout')
+    url = reverse('account:logout')
 
     def setUp(self):
         self.user = factories.ActiveUserFactory.create()
@@ -145,19 +150,19 @@ class LogoutViewTestCase(APITestCase):
 
     def test_ok_successful_logout(self):
         self.client.force_login(self.user)
-        response = self.client.post(self.url_logout)
+        response = self.client.post(self.url)
 
         self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(dict(self.client.session))
 
     def test_fail_not_auth(self):
         factories.ActiveUserFactory.create()
-        response = self.client.post(self.url_logout)
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class PasswordChangeViewTestCase(APITestCase):
-    url_pwd_change = reverse('account:password_change')
+    url = reverse('account:password_change')
 
     def setUp(self):
         self.user = factories.ActiveUserFactory.create()
@@ -172,7 +177,7 @@ class PasswordChangeViewTestCase(APITestCase):
 
     def test_ok_successful_change(self):
         self.client.force_login(self.user)
-        response = self.client.post(self.url_pwd_change, self.data)
+        response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         user = User.objects.get(pk=self.user.pk)
@@ -180,20 +185,20 @@ class PasswordChangeViewTestCase(APITestCase):
 
     def test_fail_not_auth(self):
         self.assertFalse(dict(self.client.session))
-        response = self.client.post(self.url_pwd_change, self.data)
+        response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_fail_wrong_current_password(self):
         self.client.force_login(self.user)
         self.data['current_password'] = 'invalid'
-        response = self.client.post(self.url_pwd_change, self.data)
+        response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertIn('invalid', response.data['detail'])
 
     def test_fail_new_password_mismatch(self):
         self.client.force_login(self.user)
         self.data['new_password2'] = 'invalid'
-        response = self.client.post(self.url_pwd_change, self.data)
+        response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_fail_required_fields(self):
@@ -203,7 +208,7 @@ class PasswordChangeViewTestCase(APITestCase):
                 data = self.data.copy()
                 del data[field]
 
-                response = self.client.post(self.url_pwd_change, data)
+                response = self.client.post(self.url, data)
 
                 self.assertEqual(
                     response.status_code, status.HTTP_400_BAD_REQUEST
@@ -220,9 +225,6 @@ class PasswordResetViewTestCase(APITestCase):
         self.data = {
             'email': self.user.email
         }
-
-    def tearDown(self):
-        pass
 
     def test_ok_successful_change(self):
         response = self.client.post(self.url, self.data)
