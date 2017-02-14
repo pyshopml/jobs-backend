@@ -1,5 +1,8 @@
 from django.contrib.auth import update_session_auth_hash
 
+from .models import User
+from . import utils
+
 
 class PasswordChangeMixin(object):
     """
@@ -9,9 +12,18 @@ class PasswordChangeMixin(object):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        uid = serializer.validated_data.get('uid')
+        if uid:
+            uid = utils.decode_uid(uid)
+
         new_password = serializer.data['new_password']
-        request.user.set_password(new_password)
-        request.user.save()
+
+        if request.user.is_authenticated():
+            user = request.user
+        else:
+            user = User.objects.get(pk=uid, is_active=True)
+        user.set_password(new_password)
+        user.save()
 
         if invalidate_sessions:
             update_session_auth_hash(request, serializer.user)
