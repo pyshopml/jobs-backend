@@ -21,7 +21,8 @@ class UserEmailBase(object):
     url = None
 
     def __init__(self, request, user, from_email=None):
-        self.from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', from_email)
+        self.from_email = from_email if from_email \
+            else getattr(settings, 'DEFAULT_FROM_EMAIL')
         self.user = user or request.user
         self.protocol = 'https' if request.is_secure() else 'http'
         self.site = get_current_site(request)
@@ -51,25 +52,25 @@ class UserEmailBase(object):
         }
 
 
-class UserActivationEmail(UserEmailBase):
+class UserEmailUrlMixin(object):
+    """
+    Adds formated url to base context
+    """
+    def get_context(self):
+        context = super(UserEmailUrlMixin, self).get_context()
+        context['url'] = self.url.format(**context)
+        return context
+
+
+class UserActivationEmail(UserEmailUrlMixin, UserEmailBase):
     mail_subject = 'Account activation'
     plaintext_body_template = 'email_activation_body.txt'
     html_body_template = 'email_activation_body.html'
     url = 'account/activate/?uid={uid}&token={token}'
 
-    def get_context(self):
-        context = super(UserActivationEmail, self).get_context()
-        context['url'] = self.url.format(**context)
-        return context
 
-
-class UserPasswordResetEmail(UserEmailBase):
+class UserPasswordResetEmail(UserEmailUrlMixin, UserEmailBase):
     mail_subject = 'Password reset'
     plaintext_body_template = 'email_pass_reset_body.txt'
     html_body_template = 'email_pass_reset_body.html'
     url = 'account/password/reset/confirm/?uid={uid}&token={token}'
-
-    def get_context(self):
-        context = super(UserPasswordResetEmail, self).get_context()
-        context['url'] = self.url.format(**context)
-        return context

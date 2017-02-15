@@ -56,3 +56,6 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 # 3rd party library settings
 # ------------------------------------------------------------------------------
+REST_FRAMEWORK.update({
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json'
+})
