@@ -5,6 +5,7 @@ from rest_framework import (
     exceptions,
     serializers,
 )
+from rest_framework.authtoken.models import Token
 
 from . import utils
 from .models import User
@@ -71,6 +72,14 @@ class LoginSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError(
                 self.error_messages['auth_failed'])
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    auth_token = serializers.CharField(source='key')
+
+    class Meta:
+        model = Token
+        fields = ('auth_token',)
 
 
 class UidTokenSerializer(serializers.Serializer):

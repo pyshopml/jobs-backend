@@ -116,9 +116,9 @@ class LoginViewTestCase(APITestCase):
     def test_ok_login(self):
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['id'], self.user.id)
-        self.assertEqual(response.data['email'], self.user.email)
-        self.assertEqual(response.data['name'], self.user.name)
+
+        self.user.refresh_from_db()
+        self.assertEqual(response.data['auth_token'], self.user.auth_token.key)
 
     def test_fail_email(self):
         self.data['email'] = 'invalid@example.com'

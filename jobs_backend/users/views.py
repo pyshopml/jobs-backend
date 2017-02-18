@@ -57,7 +57,10 @@ class UserViewSet(mixins.CreateModelMixin,
 
 class LoginView(generics.GenericAPIView):
     """
-    Authenticate active user.
+    Authenticate active user. Returns authentication token.
+
+    To make authorized requests use it in HTTP header:
+    `Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b`
     """
     serializer_class = serializers.LoginSerializer
     permission_classes = (permissions.AllowAny,)
@@ -67,10 +70,10 @@ class LoginView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.user
+        auth_token = utils.login_user(request, user)
 
-        utils.login_user(request, user)
         return Response(
-            data=serializers.UserRetrieveSerializer(user).data, # todo: change to token
+            data=serializers.TokenSerializer(auth_token).data,
             status=status.HTTP_200_OK,
         )
 
