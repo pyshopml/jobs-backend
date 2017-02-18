@@ -12,6 +12,8 @@ api_urlpatterns = [
         include('jobs_backend.users.urls.users', namespace='users')),
     url(r'^account/',
         include('jobs_backend.users.urls.account', namespace='account')),
+    url(r'^vacancies/',
+        include('jobs_backend.vacancies.urls', namespace='vacancies')),
 ]
 
 urlpatterns = [
