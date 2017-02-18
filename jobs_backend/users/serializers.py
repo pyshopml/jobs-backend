@@ -1,9 +1,11 @@
+from django.contrib.auth import authenticate
 from django.contrib.auth.tokens import default_token_generator
 
 from rest_framework import (
     exceptions,
     serializers,
 )
+from rest_framework.authtoken.models import Token
 
 from . import utils
 from .models import User
@@ -48,6 +50,36 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class LoginSerializer(serializers.Serializer):
+    password = serializers.CharField(style={'input_type': 'password'})
+
+    default_error_messages = {
+        'auth_failed': 'Invalid credentials or user account is inactive.'
+    }
+
+    def __init__(self, *args, **kwargs):
+        super(LoginSerializer, self).__init__(*args, **kwargs)
+        self.user = None
+        self.fields[User.USERNAME_FIELD] = serializers.CharField()
+
+    def validate(self, data):
+        self.user = authenticate(username=data.get(User.USERNAME_FIELD),
+                                 password=data.get('password'))
+        if self.user is not None:
+            return data
+        else:
+            raise serializers.ValidationError(
+                self.error_messages['auth_failed'])
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    auth_token = serializers.CharField(source='key')
+
+    class Meta:
+        model = Token
+        fields = ('auth_token',)
 
 
 class UidTokenSerializer(serializers.Serializer):
