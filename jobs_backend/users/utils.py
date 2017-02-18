@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth import login
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
@@ -12,6 +13,10 @@ def encode_uid(pk):
 
 def decode_uid(pk):
     return force_text(urlsafe_base64_decode(pk))
+
+
+def login_user(request, user):
+    login(request, user)
 
 
 class UserEmailBase(object):

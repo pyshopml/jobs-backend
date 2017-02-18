@@ -68,7 +68,7 @@ class LoginView(generics.GenericAPIView):
 
         user = serializer.user
 
-        login(request, user)
+        utils.login_user(request, user)
         return Response(
             data=serializers.UserRetrieveSerializer(user).data, # todo: change to token
             status=status.HTTP_200_OK,
