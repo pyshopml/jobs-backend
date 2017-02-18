@@ -55,31 +55,27 @@ class UserViewSet(mixins.CreateModelMixin,
         user.email_user(**dict(mail))
 
 
-class LoginView(views.APIView):
+class LoginView(generics.GenericAPIView):
+    """
+    Authenticate active user. Returns authentication token.
+
+    To make authorized requests use it in HTTP header:
+    `Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b`
+    """
+    serializer_class = serializers.LoginSerializer
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request, format=None):
-        data = request.data
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        email = data.get('email', None)
-        password = data.get('password', None)
+        user = serializer.user
+        auth_token = utils.login_user(request, user)
 
-        user = authenticate(email=email, password=password)
-
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                serialized = serializers.UserRetrieveSerializer(user)
-                return Response(serialized.data)
-            else:
-                return Response({
-                    'status': 'Unauthorized',
-                    'message': 'This account has been disabled.'
-                }, status=status.HTTP_401_UNAUTHORIZED)
-        else:
-            return Response({
-                'status': 'Unauthorized',
-                'message': 'Invalid credentials.'
-            }, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(
+            data=serializers.TokenSerializer(auth_token).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class LogoutView(views.APIView):

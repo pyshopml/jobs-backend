@@ -116,27 +116,59 @@ class LoginViewTestCase(APITestCase):
     def test_ok_login(self):
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['id'], self.user.id)
-        self.assertEqual(response.data['email'], self.user.email)
-        self.assertEqual(response.data['name'], self.user.name)
+
+        self.user.refresh_from_db()
+        self.assertEqual(response.data['auth_token'], self.user.auth_token.key)
 
     def test_fail_email(self):
         self.data['email'] = 'invalid@example.com'
         response = self.client.post(self.url, self.data)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertIn('invalid credentials', response.data['message'].lower())
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('invalid credentials',
+                      response.data['non_field_errors'][0].lower())
 
     def test_fail_password(self):
         self.data['password'] = 'invalid'
         response = self.client.post(self.url, self.data)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertIn('invalid credentials', response.data['message'].lower())
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('invalid credentials',
+                      response.data['non_field_errors'][0].lower())
 
     def test_fail_user_inactive(self):
         self.user.is_active = False
         self.user.save()
         response = self.client.post(self.url, self.data)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('inactive',
+                      response.data['non_field_errors'][0].lower())
+
+    def test_fail_required_fields(self):
+        for field in ['email', 'password']:
+            with self.subTest(field=field):
+                self.client.force_login(self.user)
+                data = self.data.copy()
+                del data[field]
+
+                response = self.client.post(self.url, data)
+                self.assertEqual(
+                    response.status_code, status.HTTP_400_BAD_REQUEST
+                )
+                self.assertIn(field, response.data)
+                self.assertIn('required', response.data[field][0])
+
+    def test_fail_blank_fields(self):
+        for field in ['email', 'password']:
+            with self.subTest(field=field):
+                self.client.force_login(self.user)
+                data = self.data.copy()
+                data[field] = ''
+
+                response = self.client.post(self.url, data)
+                self.assertEqual(
+                    response.status_code, status.HTTP_400_BAD_REQUEST
+                )
+                self.assertIn(field, response.data)
+                self.assertIn('blank', response.data[field][0])
 
 
 class LogoutViewTestCase(APITestCase):
