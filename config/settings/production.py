@@ -44,11 +44,19 @@ INSTALLED_APPS += ('gunicorn', )
 
 # EMAIL
 # ------------------------------------------------------------------------------
+EMAIL_HOST = env('DJANGO_EMAIL_HOST', default='smtp.yandex.ru')
+EMAIL_PORT = env('DJANGO_EMAIL_PORT', default=465)
+
+EMAIL_HOST_USER = env('DJANGO_EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD')
+
+EMAIL_USE_TLS = env('DJANGO_EMAIL_USE_TLS', default=False)
+EMAIL_USE_SSL = env('DJANGO_EMAIL_USE_SSL', default=False)
+
 DEFAULT_FROM_EMAIL = env('DJANGO_DEFAULT_FROM_EMAIL',
-                         default='jobs_backend <noreply@jobs.pyshop.ru>')
+                         default='notify@pyshop.ru')
 EMAIL_SUBJECT_PREFIX = env('DJANGO_EMAIL_SUBJECT_PREFIX',
                            default='[jobs_backend]')
-SERVER_EMAIL = env('DJANGO_SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
 
 # TEMPLATE CONFIGURATION
 # ------------------------------------------------------------------------------
