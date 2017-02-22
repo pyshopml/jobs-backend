@@ -11,10 +11,10 @@ from . import factories
 
 
 class UserViewSetTestCase(APITestCase):
-    url_list = reverse('users:user-list')
-    url_create = reverse('users:user-list')
-    url_detail = 'users:user-detail'
-    url_update = 'users:user-detail'
+    url_list = reverse('api:users:user-list')
+    url_create = reverse('api:users:user-list')
+    url_detail = 'api:users:user-detail'
+    url_update = 'api:users:user-detail'
 
     def setUp(self):
         self.data = {
@@ -101,7 +101,7 @@ class UserViewSetTestCase(APITestCase):
 
 
 class LoginViewTestCase(APITestCase):
-    url = reverse('account:login')
+    url = reverse('api:account:login')
 
     def setUp(self):
         self.user = factories.ActiveUserFactory.create()
@@ -172,7 +172,7 @@ class LoginViewTestCase(APITestCase):
 
 
 class LogoutViewTestCase(APITestCase):
-    url = reverse('account:logout')
+    url = reverse('api:account:logout')
 
     def setUp(self):
         self.user = factories.ActiveUserFactory.create()
@@ -194,7 +194,7 @@ class LogoutViewTestCase(APITestCase):
 
 
 class PasswordChangeViewTestCase(APITestCase):
-    url = reverse('account:password_change')
+    url = reverse('api:account:password_change')
 
     def setUp(self):
         self.user = factories.ActiveUserFactory.create()
@@ -250,7 +250,7 @@ class PasswordChangeViewTestCase(APITestCase):
 
 
 class PasswordResetViewTestCase(APITestCase):
-    url = reverse('account:password_reset')
+    url = reverse('api:account:password_reset')
 
     def setUp(self):
         self.user = factories.ActiveUserFactory.create()
@@ -278,7 +278,7 @@ class PasswordResetViewTestCase(APITestCase):
 
 
 class PasswordResetConfirmViewTestCase(APITestCase):
-    url = reverse('account:password_reset_confirm')
+    url = reverse('api:account:password_reset_confirm')
 
     def setUp(self):
         self.user = factories.ActiveUserFactory.create()
@@ -335,7 +335,7 @@ class PasswordResetConfirmViewTestCase(APITestCase):
 
 
 class ActivationViewTestCase(APITestCase):
-    url = reverse('account:activation')
+    url = reverse('api:account:activation')
 
     def setUp(self):
         self.user = factories.BaseUserFactory.create()
