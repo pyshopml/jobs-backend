@@ -20,7 +20,7 @@ urlpatterns = [
 ]
 
 urlpatterns += [
-    url(r'^$', APIRoot.as_view(urlpatterns=urlpatterns, app_namespace='api_v1'), name='api_root')
+    url(r'^api/$', APIRoot.as_view(urlpatterns=urlpatterns, app_namespace='api_v1'), name='api_root')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
