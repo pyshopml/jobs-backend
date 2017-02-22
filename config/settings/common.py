@@ -204,7 +204,7 @@ AUTHENTICATION_BACKENDS = (
 AUTH_USER_MODEL = 'users.User'
 
 # Location of root django.contrib.admin URL, use {% url 'admin:index' %}
-ADMIN_URL = r'^admin/'
+ADMIN_URL = env('DJANGO_ADMIN_URL', default=r'^admin/')
 
 # 3rd party library settings
 # ------------------------------------------------------------------------------

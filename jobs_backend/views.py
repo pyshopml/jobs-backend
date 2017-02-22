@@ -39,7 +39,11 @@ class APIRoot(APIView):
 
                 if isinstance(urlpattern, RegexURLResolver):
                     if urlpattern.namespace is not None:
-                        data[urlpattern.namespace] = parse_urlpatterns(urlpattern.url_patterns, urlpattern.namespace)
+                        sub_namespace = namespace.replace(self.app_namespace, '')
+                        sub_namespace += ':' + urlpattern.namespace
+                        if sub_namespace.startswith(':'):
+                            sub_namespace = sub_namespace.lstrip(':')
+                        data[urlpattern.namespace] = parse_urlpatterns(urlpattern.url_patterns, sub_namespace)
                 else:
                     data[urlpattern.name] = api_url(namespace, urlpattern.name, [])
 
