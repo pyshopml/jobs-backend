@@ -16,7 +16,8 @@ class UserTestCase(TestCase):
 
     def test_absolute_url(self):
         user = factories.BaseUserFactory.create()
-        self.assertEqual(user.get_absolute_url(), '/users/%s/' % user.pk)
+        self.assertEqual('/api/users/%s/' % user.pk, user.get_absolute_url())
+
 
     def test_get_full_name(self):
         self.assertEqual(self.user_obj.get_full_name(), self.user_obj.email)

@@ -77,4 +77,4 @@ class User(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
     def get_absolute_url(self):
-        return reverse('users:user-detail', kwargs={'pk': self.pk})
+        return reverse('api:users:user-detail', kwargs={'pk': self.pk})
