@@ -86,8 +86,8 @@ class LogoutView(views.APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, format=None):
-        logout(request)
-        return Response({}, status=status.HTTP_204_NO_CONTENT)
+        utils.logout_user(request)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class PasswordChangeView(PasswordChangeMixin, generics.GenericAPIView):
