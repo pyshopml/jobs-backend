@@ -1,5 +1,5 @@
 from django.conf import settings
-# from django.contrib.auth import login
+from django.contrib.auth import logout
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
@@ -21,6 +21,11 @@ def login_user(request, user):
     auth_token, _ = Token.objects.get_or_create(user=user)
     # login(request, user)
     return auth_token
+
+
+def logout_user(request):
+    Token.objects.filter(user=request.user).delete()
+    logout(request)
 
 
 class UserEmailBase(object):
