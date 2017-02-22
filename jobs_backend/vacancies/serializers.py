@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import Vacancy
 
 
-class VacancySerializer(serializers.HyperlinkedModelSerializer):
+class VacancySerializer(serializers.ModelSerializer):
     """
     Common vacancy model serializer
     """
@@ -13,5 +13,5 @@ class VacancySerializer(serializers.HyperlinkedModelSerializer):
             'id', 'url', 'title', 'description', 'created_on', 'modified_on'
         )
         extra_kwargs = {
-            'url': {'view_name': 'vacancies:vacancy-detail', 'read_only': True}
+            'url': {'view_name': 'api:vacancies:vacancy-detail', 'read_only': True}
         }

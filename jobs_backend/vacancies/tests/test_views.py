@@ -13,7 +13,7 @@ class VacancyViewSetTestCase(APITestCase):
     url_detail = 'vacancies:vacancy-detail'
     url_list = 'vacancies:vacancy-list'
 
-    def test_list_vacancies_empty(self):
+    def test_ok_list_empty(self):
         """
         If there are no vacancies we will get empty list
         """
@@ -24,7 +24,7 @@ class VacancyViewSetTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(response.data, list())
 
-    def test_list_vacancies(self):
+    def test_ok_list(self):
         """
         Checks if have vacancies we should see them
         """
@@ -36,7 +36,7 @@ class VacancyViewSetTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), Vacancy.objects.count())
 
-    def test_detail_vacancy(self):
+    def test_ok_detail(self):
         """
         Checks retrieved data for existed vacancy object
         """
@@ -50,7 +50,7 @@ class VacancyViewSetTestCase(APITestCase):
         self.assertEqual(response.data.get('title'), obj.title)
         self.assertEqual(response.data.get('description'), obj.description)
 
-    def test_detail_vacancy_not_found(self):
+    def test_fail_detail_not_found(self):
         """
         Getting message about non-existent vacancy
         """
@@ -61,7 +61,7 @@ class VacancyViewSetTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertIn('Not found', response.data.get('detail', ''))
 
-    def test_unauth_create_vacancy(self):
+    def test_fails_unauth_create(self):
         """
         Attempt to create a vacancy without authorization
         """
@@ -73,7 +73,7 @@ class VacancyViewSetTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Vacancy.objects.count(), 0)
 
-    def test_auth_create_vacancy(self):
+    def test_ok_auth_create(self):
         """
         Attempt to create a vacancy with authorization
         """
