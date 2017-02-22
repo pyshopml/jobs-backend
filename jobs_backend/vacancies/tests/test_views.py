@@ -9,9 +9,9 @@ from . import factories
 
 
 class VacancyViewSetTestCase(APITestCase):
-    url_create = 'vacancies:vacancy-list'
-    url_detail = 'vacancies:vacancy-detail'
-    url_list = 'vacancies:vacancy-list'
+    url_create = 'api:vacancies:vacancy-list'
+    url_detail = 'api:vacancies:vacancy-detail'
+    url_list = 'api:vacancies:vacancy-list'
 
     def test_ok_list_empty(self):
         """
