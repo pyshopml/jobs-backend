@@ -11,4 +11,4 @@ class VacancyTestCase(TestCase):
 
     def test_absolute_url(self):
         v = factories.VacancyFactory.create()
-        self.assertEqual(v.get_absolute_url(), '/vacancies/%s/' % v.pk)
+        self.assertEqual(v.get_absolute_url(), '/api/vacancies/%s/' % v.pk)
