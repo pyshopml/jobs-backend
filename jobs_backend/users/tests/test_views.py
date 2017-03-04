@@ -29,14 +29,17 @@ class UserViewSetTestCase(APITestCase):
     def test_ok_list_empty(self):
         response = self.client.get(self.url_list)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertListEqual(response.data, list())
+        self.assertListEqual(response.data['results'], list())
 
     def test_ok_list_sort_order(self):
         factories.ActiveUserFactory.create_batch(2)
         response = self.client.get(self.url_list)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-        self.assertGreater(response.data[0]['id'], response.data[1]['id'])
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertGreater(
+            response.data['results'][0]['id'],
+            response.data['results'][1]['id']
+        )
 
     def test_ok_detail(self):
         user = factories.ActiveUserFactory.create()
@@ -59,6 +62,16 @@ class UserViewSetTestCase(APITestCase):
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(response.data['email'], self.data['email'])
         self.assertEqual(response.data['name'], self.data['name'])
+
+    def test_fail_email_exists(self):
+        existing_user = factories.ActiveUserFactory()
+        data = {
+            'email': existing_user.email,
+            'password': '123',
+        }
+        response = self.client.post(self.url_create, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('exists', response.data['email'][0])
 
     def test_ok_create_without_name(self):
         del self.data['name']
