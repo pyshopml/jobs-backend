@@ -74,12 +74,38 @@ class LoginSerializer(serializers.Serializer):
                 self.error_messages['auth_failed'])
 
 
-class TokenSerializer(serializers.ModelSerializer):
+class AuthTokenSerializer(serializers.ModelSerializer):
     auth_token = serializers.CharField(source='key')
 
     class Meta:
         model = Token
         fields = ('auth_token',)
+
+
+class AuthTokenValidateSerializer(serializers.ModelSerializer):
+    auth_token = serializers.CharField(source='key')
+    user = UserRetrieveSerializer(read_only=True)
+
+    class Meta:
+        model = Token
+        fields = ('auth_token', 'user')
+
+    default_error_messages = {
+        'authtoken_invalid' : 'Invalid token'
+    }
+
+    def validate_auth_token(self, value):
+        value = super(AuthTokenValidateSerializer, self).validate(value)
+        self.token = Token.objects.filter(key=value).select_related('user')
+        if not self.token:
+            raise serializers.ValidationError(
+                self.error_messages['authtoken_invalid'])
+        return value
+
+    def validate(self, data):
+        data = super(AuthTokenValidateSerializer, self).validate(data)
+        data['user'] = self.token[0].user
+        return data
 
 
 class UidTokenSerializer(serializers.Serializer):
