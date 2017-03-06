@@ -3,6 +3,7 @@ from django.core import mail
 from django.urls import reverse
 
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from .. import utils
@@ -386,3 +387,28 @@ class ActivationViewTestCase(APITestCase):
                 )
                 self.assertIn(field, response.data)
                 self.assertIn('required', response.data[field][0])
+
+
+class AuthTokenValidationViewTestCase(APITestCase):
+    url = reverse('api:account:authtoken_validate')
+
+    def setUp(self):
+        self.user = factories.ActiveUserFactory.create()
+        self.auth_token, _ = Token.objects.get_or_create(user=self.user)
+
+    def test_ok_valid_token(self):
+        data = {
+            'auth_token': self.auth_token.key,
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['auth_token'], self.auth_token.key)
+        self.assertEqual(response.data['user']['id'], self.user.id)
+
+    def test_fail_invalid_token(self):
+        data = {
+            'auth_token': 'i_am_an_invalid_token',
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['auth_token'][0], 'Invalid token')
