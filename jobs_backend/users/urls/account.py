@@ -18,4 +18,7 @@ urlpatterns = [
     url(r'^password/reset/confirm/$',
         views.PasswordResetConfirmView.as_view(),
         name='password_reset_confirm'),
+    url(r'^authtoken/validate/$',
+        views.AuthTokenValidationView.as_view(),
+        name='authtoken_validate')
 ]
