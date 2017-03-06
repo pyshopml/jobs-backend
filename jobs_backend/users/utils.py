@@ -87,4 +87,4 @@ class UserPasswordResetEmail(UserEmailUrlMixin, UserEmailBase):
     mail_subject = 'Password reset'
     plaintext_body_template = 'email_pass_reset_body.txt'
     html_body_template = 'email_pass_reset_body.html'
-    url = 'account/{uid}/password-reset-confirm/{token}/'
+    url = 'account/{uid}/password-reset/{token}/'
