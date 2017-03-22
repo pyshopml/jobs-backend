@@ -80,8 +80,9 @@ class LoginView(generics.GenericAPIView):
 
 class LogoutView(views.APIView):
     """
-    With session-based auth requires to set
-    `X-CSRFToken` header at HTTP-request
+    Session: Requires to set `X-CSRFToken` header at HTTP-request\n
+    Token: Send authorized POST with HTTP header:
+        `Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b`
     """
     permission_classes = (permissions.IsAuthenticated,)
 

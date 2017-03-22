@@ -194,7 +194,7 @@ class LogoutViewTestCase(APITestCase):
     def tearDown(self):
         User.objects.all().delete()
 
-    def test_ok_successful_logout(self):
+    def test_ok_session(self):
         self.client.force_login(self.user)
         response = self.client.post(self.url)
 
@@ -202,9 +202,14 @@ class LogoutViewTestCase(APITestCase):
         self.assertFalse(dict(self.client.session))
 
     def test_fail_not_auth(self):
-        factories.ActiveUserFactory.create()
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_ok_token(self):
+        self.fail('Not implemented. Test with valid token')
+
+    def test_fail_wrong_token(self):
+        self.fail('Not implemented. Test with invalid token')
 
 
 class PasswordChangeViewTestCase(APITestCase):

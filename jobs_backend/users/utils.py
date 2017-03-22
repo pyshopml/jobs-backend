@@ -80,11 +80,11 @@ class UserActivationEmail(UserEmailUrlMixin, UserEmailBase):
     mail_subject = 'Account activation'
     plaintext_body_template = 'email_activation_body.txt'
     html_body_template = 'email_activation_body.html'
-    url = 'account/{uid}/activate/{token}/'
+    url = '#/account/{uid}/activate/{token}/'
 
 
 class UserPasswordResetEmail(UserEmailUrlMixin, UserEmailBase):
     mail_subject = 'Password reset'
     plaintext_body_template = 'email_pass_reset_body.txt'
     html_body_template = 'email_pass_reset_body.html'
-    url = 'account/{uid}/password-reset/{token}/'
+    url = '#/account/{uid}/password-reset/{token}/'
