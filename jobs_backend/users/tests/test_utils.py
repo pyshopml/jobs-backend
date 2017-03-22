@@ -81,7 +81,7 @@ class UserActivationEmailTestCase(TestCase):
 
         url = email.get_context().get('url')
         self.assertEqual(
-            'account/{uid}/activate/{token}/'.format(uid=uid, token=token), url
+            '#/account/{uid}/activate/{token}/'.format(uid=uid, token=token), url
         )
 
     def test_ok_template_renders(self):
@@ -112,7 +112,7 @@ class UserPasswordResetEmailTestCase(TestCase):
 
         url = email.get_context().get('url')
         self.assertEqual(
-            'account/{uid}/password-reset/{token}/'.format(
+            '#/account/{uid}/password-reset/{token}/'.format(
                 uid=uid, token=token), url
         )
 
