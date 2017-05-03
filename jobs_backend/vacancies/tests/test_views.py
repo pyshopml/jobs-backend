@@ -5,6 +5,7 @@ from rest_framework.test import APITestCase
 
 from jobs_backend.vacancies.models import Vacancy
 from jobs_backend.users.tests.factories import ActiveUserFactory
+from jobs_backend.vacancies.serializers import SearchSerializer
 from . import factories
 
 
@@ -89,3 +90,116 @@ class VacancyViewSetTestCase(APITestCase):
         self.assertEqual(Vacancy.objects.count(), 1)
         self.assertEqual(response.data.get('title'), data['title'])
         self.assertEqual(response.data.get('description'), data['description'])
+
+
+class SearchVacancyTestCase(APITestCase):
+    search_url = 'api:vacancies:search'
+    url = reverse(search_url)
+
+    def setUp(self):
+        self.batch_vac_count = 20
+        self.vacancies = factories.VacancyFactory.create_batch(self.batch_vac_count)
+        self.search_serializer = SearchSerializer
+
+    def tearDown(self):
+        Vacancy.objects.all().delete()
+
+    def test_ok_search_1_vacancy_on_title(self):
+        requested_title = self.vacancies[self.batch_vac_count - 1].title
+        requested_description = self.vacancies[self.batch_vac_count - 1].description
+        search_section = self.search_serializer.TITLE
+        response = self.client.get(self.url, data={
+            'phrase': requested_title,
+            'section': search_section
+        })
+        results = response.data.get('results', list())
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].get('title', ''), requested_title)
+        self.assertEqual(results[0].get('description', ''), requested_description)
+
+    def test_ok_search_1_vacancy_in_description(self):
+        requested_title = self.vacancies[self.batch_vac_count - 1].title
+        requested_description = self.vacancies[self.batch_vac_count - 1].description
+        search_section = self.search_serializer.DESC
+        response = self.client.get(self.url, data={
+            'phrase': requested_description,
+            'section': search_section
+        })
+        results = response.data.get('results', list())
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].get('title', ''), requested_title)
+        self.assertEqual(results[0].get('description', ''), requested_description)
+
+    def test_ok_search_1_vacancy_in_any_fields(self):
+        requested_title = self.vacancies[self.batch_vac_count - 2].title
+        requested_description = self.vacancies[self.batch_vac_count - 2].description
+        search_section = self.search_serializer.ANY
+        response = self.client.get(self.url, data={
+            'phrase': requested_description,
+            'section': search_section
+        })
+        results = response.data.get('results', list())
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].get('title', ''), requested_title)
+        self.assertEqual(results[0].get('description', ''), requested_description)
+        response = self.client.get(self.url, data={
+            'phrase': requested_title,
+            'section': search_section
+        })
+        results = response.data.get('results', list())
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].get('title', ''), requested_title)
+        self.assertEqual(results[0].get('description', ''), requested_description)
+
+    def test_ok_search_20_vacancy_on_title(self):
+        partial_phrase = 'title'
+        search_section = self.search_serializer.ANY
+        response = self.client.get(self.url, data={
+            'phrase': partial_phrase,
+            'section': search_section
+        })
+        expected_title1 = self.vacancies[0].title
+        expected_title2 = self.vacancies[1].title
+        results = response.data.get('results', list())
+        self.assertEqual(len(results), 20)
+        self.assertEqual(results[0].get('title', ''), expected_title1)
+        self.assertEqual(results[1].get('title', ''), expected_title2)
+
+    def test_ok_search_20_vacancy_on_description(self):
+        partial_phrase = 'description'
+        search_section = self.search_serializer.ANY
+        response = self.client.get(self.url, data={
+            'phrase': partial_phrase,
+            'section': search_section
+        })
+        results = response.data.get('results', list())
+        self.assertEqual(len(results), 20)
+
+    def test_ok_no_results_on_fail_data(self):
+        search_section = self.search_serializer.ANY
+        response = self.client.get(self.url, data={
+            'phrase': 'failed_phrase',
+            'section': search_section
+        })
+        results = response.data.get('results', None)
+        self.assertEqual(len(results), 0)
+
+    def test_fail_on_fail_section(self):
+        requested_title = self.vacancies[self.batch_vac_count - 2].title
+        search_section = 'fail_section'
+        response = self.client.get(self.url, data={
+            'phrase': requested_title,
+            'section': search_section
+        })
+        fail_section_results = response.data.get('section', None)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('"fail_section" is not a valid choice.', fail_section_results)
+
+    def test_fail_on_absent_param_phrase(self):
+        search_section = self.search_serializer.ANY
+        response = self.client.get(self.url, data={
+            'section': search_section
+        })
+        fail_section_results = response.data.get('phrase', None)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('This field is required.', fail_section_results)
