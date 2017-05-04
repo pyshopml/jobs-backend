@@ -22,7 +22,7 @@ class VacancyViewSetTestCase(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertListEqual(response.data, list())
+        self.assertListEqual(response.data.get('results', ''), list())
 
     def test_ok_list(self):
         """
@@ -34,7 +34,7 @@ class VacancyViewSetTestCase(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), Vacancy.objects.count())
+        self.assertEqual(len(response.data.get('results', list())), Vacancy.objects.count())
 
     def test_ok_detail(self):
         """
