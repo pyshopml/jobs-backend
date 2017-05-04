@@ -26,9 +26,9 @@ class SearchVacancyView(generics.ListAPIView):
 
     def filter_queryset(self, queryset):
         queryset = super().filter_queryset(queryset)
-        search_param = self.search_serializer(data=self.request.query_params)
-        search_param.is_valid(raise_exception=True)
-        queryset = queryset.filter(search_param.save())
+        search_param_ser = self.search_serializer(data=self.request.query_params)
+        search_param_ser.is_valid(raise_exception=True)
+        queryset = queryset.filter(search_param_ser.save())
         return queryset
 
 

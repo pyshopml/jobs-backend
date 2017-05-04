@@ -28,17 +28,17 @@ class SearchSerializer(serializers.Serializer):
     """
 
     TITLE = 'title'
-    DESC = 'description'
-    search_sections = (TITLE, DESC)
+    DESCRIPTION = 'description'
+    search_sections = (TITLE, DESCRIPTION)
     ANY = 'anywhere'
     search_sections_param = [
         (TITLE, 'title'),
-        (DESC, 'description'),
+        (DESCRIPTION, 'description'),
         (ANY, 'anywhere')
     ]
 
     phrase = serializers.CharField(min_length=3, max_length=50, label='Search phrase', help_text='min 3 chars, max 50')
-    section = serializers.MultipleChoiceField(choices=search_sections_param, label='Search in', default=ANY)
+    section = serializers.MultipleChoiceField(choices=search_sections_param, label='Search in')
 
     @staticmethod
     def validate_section(value):
@@ -58,5 +58,5 @@ class SearchSerializer(serializers.Serializer):
     def create(self, validated_data):
         search_text = self.validated_data.get('phrase')
         sections = self.validated_data.get('section', set())
-        sections = self.search_sections if SearchSerializer.ANY in sections else sections
+        sections = self.search_sections if SearchSerializer.ANY in sections or not sections else sections
         return self._create_query(search_text, sections)

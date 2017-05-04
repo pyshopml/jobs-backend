@@ -120,7 +120,7 @@ class SearchVacancyTestCase(APITestCase):
     def test_ok_search_1_vacancy_in_description(self):
         requested_title = self.vacancies[self.batch_vac_count - 1].title
         requested_description = self.vacancies[self.batch_vac_count - 1].description
-        search_section = self.search_serializer.DESC
+        search_section = self.search_serializer.DESCRIPTION
         response = self.client.get(self.url, data={
             'phrase': requested_description,
             'section': search_section
@@ -134,7 +134,7 @@ class SearchVacancyTestCase(APITestCase):
         vac1 = Vacancy.objects.create(title='first', description='1st vacancy')
         vac2 = Vacancy.objects.create(title='second', description='2nd vacancy with first in desc')
         requested_phrase = vac1.title
-        search_section = self.search_serializer.DESC
+        search_section = self.search_serializer.DESCRIPTION
         search_section2 = self.search_serializer.TITLE
         response = self.client.get(self.url, data={
             'phrase': requested_phrase,
@@ -215,6 +215,15 @@ class SearchVacancyTestCase(APITestCase):
         response = self.client.get(self.url, data={
             'section': search_section
         })
-        fail_section_results = response.data.get('phrase', None)
+        fail_param_results = response.data.get('phrase', None)
         self.assertEqual(response.status_code, 400)
-        self.assertIn('This field is required.', fail_section_results)
+        self.assertIn('This field is required.', fail_param_results)
+
+    def test_fail_on_absent_param_section(self):
+        requested_title = self.vacancies[self.batch_vac_count - 1].title
+        response = self.client.get(self.url, data={
+            'phrase': requested_title
+        })
+        fail_section_results = response.data.get('section', None)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('Choise search section must be set!', fail_section_results)
