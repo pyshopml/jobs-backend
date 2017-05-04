@@ -58,5 +58,6 @@ class SearchSerializer(serializers.Serializer):
     def create(self, validated_data):
         search_text = self.validated_data.get('phrase')
         sections = self.validated_data.get('section', set())
-        sections = self.search_sections if SearchSerializer.ANY in sections or not sections else sections
+        if SearchSerializer.ANY in sections or not sections:
+            sections = self.search_sections
         return self._create_query(search_text, sections)
