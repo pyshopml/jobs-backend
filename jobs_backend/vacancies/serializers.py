@@ -1,3 +1,7 @@
+import operator
+from functools import reduce
+
+from django.db.models import Q
 from rest_framework import serializers
 
 from .models import Vacancy
@@ -26,7 +30,7 @@ class SearchSerializer(serializers.Serializer):
     TITLE = 'title'
     DESC = 'description'
     search_sections = (TITLE, DESC)
-    ANY = 'any'
+    ANY = 'anywhere'
     search_sections_param = [
         (TITLE, 'title'),
         (DESC, 'description'),
@@ -34,11 +38,25 @@ class SearchSerializer(serializers.Serializer):
     ]
 
     phrase = serializers.CharField(min_length=3, max_length=50, label='Search phrase', help_text='min 3 chars, max 50')
-    section = serializers.ChoiceField(choices=search_sections_param, label='Search in')
+    section = serializers.MultipleChoiceField(choices=search_sections_param, label='Search in', default=ANY)
 
-    # def create(self, validated_data):
-    #     if SearchSerializer.ANY in validated_data.section:
-    #
-    #         return set(self.search_sections)
-    #     else:
-    #         return
+    @staticmethod
+    def validate_section(value):
+        """
+        Check on empty set in multiplechoise field.
+        """
+        if not value:
+            raise serializers.ValidationError('Choise search section must be set!')
+        return value
+
+    @staticmethod
+    def _create_query(search_text, sections):
+        queries = [Q(**{'{}__icontains'.format(field): search_text}) for field in sections]
+        query = reduce(operator.or_, queries)
+        return query
+
+    def create(self, validated_data):
+        search_text = self.validated_data.get('phrase')
+        sections = self.validated_data.get('section', set())
+        sections = self.search_sections if SearchSerializer.ANY in sections else sections
+        return self._create_query(search_text, sections)

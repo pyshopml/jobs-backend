@@ -130,6 +130,21 @@ class SearchVacancyTestCase(APITestCase):
         self.assertEqual(results[0].get('title', ''), requested_title)
         self.assertEqual(results[0].get('description', ''), requested_description)
 
+    def test_ok_search_2_vacancy_in_description_title(self):
+        vac1 = Vacancy.objects.create(title='first', description='1st vacancy')
+        vac2 = Vacancy.objects.create(title='second', description='2nd vacancy with first in desc')
+        requested_phrase = vac1.title
+        search_section = self.search_serializer.DESC
+        search_section2 = self.search_serializer.TITLE
+        response = self.client.get(self.url, data={
+            'phrase': requested_phrase,
+            'section': [search_section, search_section2]
+        })
+        results = response.data.get('results', list())
+        self.assertEqual(len(results), 2)
+        self.assertEqual(results[0].get('title', ''), requested_phrase)
+        self.assertIn(requested_phrase, results[1].get('description', ''))
+
     def test_ok_search_1_vacancy_in_any_fields(self):
         requested_title = self.vacancies[self.batch_vac_count - 2].title
         requested_description = self.vacancies[self.batch_vac_count - 2].description
