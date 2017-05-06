@@ -7,6 +7,7 @@ class KeywordsField(serializers.StringRelatedField):
     """
     Representation `keywords` field of the vacancy model
     """
+
     def to_internal_value(self, data):
         tag, created = Tag.objects.get_or_create(title=data)
         return tag
@@ -35,19 +36,28 @@ class CategoryField(serializers.RelatedField):
         return category
 
 
+class LocationField(serializers.DictField):
+    """
+    Representation `location` field
+    """
+    city = serializers.CharField(max_length=128)
+    country = serializers.CharField(max_length=128)
+
+
 class VacancySerializer(serializers.ModelSerializer):
     """
     Common vacancy model serializer
     """
     keywords = KeywordsField(many=True)
     category = CategoryField()
+    location = LocationField(required=False)
 
     class Meta:
         model = Vacancy
         fields = (
             'id', 'url', 'title', 'description', 'salary_min', 'salary_max',
-            'keywords', 'busyness', 'remote_work', 'category', 'created_on',
-            'modified_on'
+            'location', 'keywords', 'busyness', 'remote_work', 'category',
+            'created_on', 'modified_on'
         )
         extra_kwargs = {
             'url': {'view_name': 'api:vacancies:vacancy-detail',
