@@ -49,15 +49,49 @@ class SearchSerializer(serializers.Serializer):
             raise serializers.ValidationError('Choise search section must be set!')
         return value
 
-    @staticmethod
-    def _create_query(search_text, sections):
+    def _create_query(self, validated_data):
+        search_text = validated_data.get('phrase')
+        sections = validated_data.get('section', set())
+        if SearchSerializer.ANY in sections or not sections:
+            sections = self.search_sections
         queries = [Q(**{'{}__icontains'.format(field): search_text}) for field in sections]
         query = reduce(operator.or_, queries)
         return query
 
     def create(self, validated_data):
-        search_text = self.validated_data.get('phrase')
-        sections = self.validated_data.get('section', set())
-        if SearchSerializer.ANY in sections or not sections:
-            sections = self.search_sections
-        return self._create_query(search_text, sections)
+        return self._create_query(validated_data)
+
+
+class SortSerializer(serializers.Serializer):
+    """
+    Sort vacancy queryset serializer
+    """
+    UPDATE = 'modified_on'
+    SALARY_MIN = 'salary_min'
+    SALARY_MAX = 'salary_max'
+    DISTANCE = 'distance'
+    sort_fields = [
+        (UPDATE, 'last update'),
+        (SALARY_MIN, 'salary from'),
+        (SALARY_MAX, 'salary to'),
+    ]
+
+    ASC = 'asc'
+    DESC = 'desc'
+    ordering_direction = [
+        (ASC, 'asc'),
+        (DESC, 'desc')
+    ]
+    order = serializers.ChoiceField(choices=ordering_direction, label='sort order',
+                                    help_text='increase decrease', default=ASC)
+    sort_field = serializers.ChoiceField(choices=sort_fields, label='Sort by')
+
+    def _create_sort_param(self, validated_data):
+        order = validated_data.get('order')
+        sort_field = validated_data.get('sort_field')
+        if order == self.DESC:
+            sort_field = '-{}'.format(sort_field)
+        return sort_field
+
+    def create(self, validated_data):
+        return self._create_sort_param(validated_data)

@@ -2,7 +2,7 @@ from unittest import TestCase
 from django.db.models import Q
 from rest_framework.exceptions import ValidationError
 
-from jobs_backend.vacancies.serializers import SearchSerializer
+from jobs_backend.vacancies.serializers import SearchSerializer, SortSerializer
 
 
 class VacancySearchSerializerTestCase(TestCase):
@@ -114,4 +114,51 @@ class VacancySearchSerializerTestCase(TestCase):
         with self.assertRaises(ValidationError) as exc:
             bound_serializer.is_valid(raise_exception=True)
         self.assertTrue('This field is required.' in exc.exception.detail.get('section', ''))
+
+
+class VacancySortSerializerTestCase(TestCase):
+    def setUp(self):
+        self.serializer_class = SortSerializer
+
+    def test_ok_expected_fields(self):
+        data = {
+            'order': self.serializer_class.DESC,
+            'sort_field': self.serializer_class.UPDATE
+        }
+        bound_serializer = self.serializer_class(data=data)
+        self.assertTrue(bound_serializer.is_valid())
+        data = bound_serializer.data
+        self.assertCountEqual(data.keys(), ['order', 'sort_field'])
+
+    def test_ok_expected_sort_decs_values(self):
+        data = {
+            'order': self.serializer_class.DESC,
+            'sort_field': self.serializer_class.UPDATE
+        }
+        bound_serializer = self.serializer_class(data=data)
+        self.assertTrue(bound_serializer.is_valid())
+        sort_param_data = bound_serializer.save()
+        expected_param = '-{}'.format(self.serializer_class.UPDATE)
+        self.assertEqual(expected_param, sort_param_data)
+
+    def test_ok_expected_sort_asc_values(self):
+        data = {
+            'order': self.serializer_class.ASC,
+            'sort_field': self.serializer_class.UPDATE
+        }
+        bound_serializer = self.serializer_class(data=data)
+        self.assertTrue(bound_serializer.is_valid())
+        sort_param_data = bound_serializer.save()
+        expected_param = '{}'.format(self.serializer_class.UPDATE)
+        self.assertEqual(expected_param, sort_param_data)
+
+    def test_fail_bad_choice(self):
+        data = {
+            'order': self.serializer_class.DESC,
+            'sort_field': 'another_choise'
+        }
+        bound_serializer = self.serializer_class(data=data)
+        with self.assertRaises(ValidationError) as exc:
+            bound_serializer.is_valid(raise_exception=True)
+        self.assertTrue('"another_choise" is not a valid choice.' in exc.exception.detail.get('sort_field', ''))
 

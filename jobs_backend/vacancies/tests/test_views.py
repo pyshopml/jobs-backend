@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 
 from jobs_backend.vacancies.models import Vacancy
 from jobs_backend.users.tests.factories import ActiveUserFactory
-from jobs_backend.vacancies.serializers import SearchSerializer
+from jobs_backend.vacancies.serializers import SearchSerializer, SortSerializer
 from . import factories
 
 
@@ -199,6 +199,15 @@ class SearchVacancyTestCase(APITestCase):
         results = response.data.get('results', None)
         self.assertEqual(len(results), 0)
 
+    def test_ok_on_absent_param_phrase(self):
+        search_section = self.search_serializer.ANY
+        response = self.client.get(self.url, data={
+            'section': search_section
+        })
+        self.assertEqual(response.status_code, 200)
+        results = response.data.get('results', list())
+        self.assertEqual(len(results), self.batch_vac_count)
+
     def test_fail_on_fail_section(self):
         requested_title = self.vacancies[self.batch_vac_count - 2].title
         search_section = 'fail_section'
@@ -210,15 +219,6 @@ class SearchVacancyTestCase(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn('"fail_section" is not a valid choice.', fail_section_results)
 
-    def test_fail_on_absent_param_phrase(self):
-        search_section = self.search_serializer.ANY
-        response = self.client.get(self.url, data={
-            'section': search_section
-        })
-        fail_param_results = response.data.get('phrase', None)
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('This field is required.', fail_param_results)
-
     def test_fail_on_absent_param_section(self):
         requested_title = self.vacancies[self.batch_vac_count - 1].title
         response = self.client.get(self.url, data={
@@ -227,3 +227,25 @@ class SearchVacancyTestCase(APITestCase):
         fail_section_results = response.data.get('section', None)
         self.assertEqual(response.status_code, 400)
         self.assertIn('Choise search section must be set!', fail_section_results)
+
+
+class SortVacancyTestCase(APITestCase):
+    search_url = 'api:vacancies:search'
+    url = reverse(search_url)
+
+    def setUp(self):
+        self.batch_vac_count = 20
+        self.vacancies = factories.VacancyRandomDateFactory.create_batch(self.batch_vac_count)
+        self.sort_serializer = SortSerializer
+
+    def tearDown(self):
+        Vacancy.objects.all().delete()
+
+    def test_ok_sort_from_old_to_new(self):
+        response = self.client.get(self.url, data={
+            'order': self.sort_serializer.ASC,
+            'sort_field': self.sort_serializer.UPDATE
+        })
+        results = response.data.get('results', list())
+        self.assertEqual(len(results), 20)
+        self.assertTrue(True)
