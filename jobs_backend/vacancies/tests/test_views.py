@@ -1,5 +1,7 @@
+from datetime import datetime, timedelta
+from factory import fuzzy
 from django.urls import reverse
-
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -7,6 +9,7 @@ from jobs_backend.vacancies.models import Vacancy
 from jobs_backend.users.tests.factories import ActiveUserFactory
 from jobs_backend.vacancies.serializers import SearchSerializer, SortSerializer
 from . import factories
+from unittest import mock
 
 
 class VacancyViewSetTestCase(APITestCase):
@@ -234,8 +237,12 @@ class SortVacancyTestCase(APITestCase):
     url = reverse(search_url)
 
     def setUp(self):
-        self.batch_vac_count = 20
-        self.vacancies = factories.VacancyRandomDateFactory.create_batch(self.batch_vac_count)
+        tz = timezone.get_default_timezone()
+        for n in range(20):
+            create_time = fuzzy.FuzzyDateTime(datetime.now(tz=tz) - timedelta(5)).fuzz()
+            with mock.patch('django.utils.timezone.now') as mock_now:
+                mock_now.return_value = create_time
+                factories.VacancyFactory.create()
         self.sort_serializer = SortSerializer
 
     def tearDown(self):
@@ -249,3 +256,33 @@ class SortVacancyTestCase(APITestCase):
         results = response.data.get('results', list())
         self.assertEqual(len(results), 20)
         self.assertTrue(True)
+
+    def test_ok_check_ASC_date_ordering(self):
+        response = self.client.get(self.url, data={
+            'order': self.sort_serializer.ASC,
+            'sort_field': self.sort_serializer.UPDATE
+        })
+        results = response.data.get('results', list())
+        self.assertEqual(len(results), 20)
+        vac_iter = iter(results)
+        earliest = next(vac_iter)
+        for vac in results:
+            earliest_date = datetime.strptime(earliest[self.sort_serializer.UPDATE], '%Y-%m-%dT%H:%M:%S.%fZ')
+            latest_date = datetime.strptime(vac[self.sort_serializer.UPDATE], '%Y-%m-%dT%H:%M:%S.%fZ')
+            self.assertGreaterEqual(latest_date, earliest_date)
+            earliest = vac
+
+    def test_ok_check_DESC_date_ordering(self):
+        response = self.client.get(self.url, data={
+            'order': self.sort_serializer.DESC,
+            'sort_field': self.sort_serializer.UPDATE
+        })
+        results = response.data.get('results', list())
+        self.assertEqual(len(results), 20)
+        vac_iter = iter(results)
+        latest = next(vac_iter)
+        for vac in results:
+            latest_date = datetime.strptime(latest[self.sort_serializer.UPDATE], '%Y-%m-%dT%H:%M:%S.%fZ')
+            earliest_date = datetime.strptime(vac[self.sort_serializer.UPDATE], '%Y-%m-%dT%H:%M:%S.%fZ')
+            self.assertLessEqual(earliest_date, latest_date)
+            latest = vac

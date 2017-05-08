@@ -4,7 +4,6 @@ import factory
 from factory import fuzzy
 
 from ..models import Vacancy
-from django.db import models
 
 
 class VacancyFactory(factory.DjangoModelFactory):
