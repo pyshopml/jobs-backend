@@ -52,8 +52,8 @@ class VacancySerializer(serializers.ModelSerializer):
     """
     Common vacancy model serializer
     """
-    keywords = KeywordsField(many=True)
-    category = CategoryField()
+    keywords = KeywordsField(required=False, many=True)
+    category = CategoryField(required=False)
     location = LocationField(required=False)
 
     class Meta:
