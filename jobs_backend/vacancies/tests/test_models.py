@@ -3,6 +3,20 @@ from django.test import TestCase
 from . import factories
 
 
+class TagTestCase(TestCase):
+
+    def test_string_representation(self):
+        tag = factories.TagFactory.build()
+        self.assertEqual(str(tag), tag.title)
+
+
+class CategoryTestCase(TestCase):
+
+    def test_string_representation(self):
+        category = factories.CategoryFactory.build()
+        self.assertEqual(str(category), category.title)
+
+
 class VacancyTestCase(TestCase):
 
     def test_string_representation(self):

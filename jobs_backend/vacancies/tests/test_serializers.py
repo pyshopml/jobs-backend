@@ -9,11 +9,42 @@ from rest_framework.test import APIRequestFactory
 from rest_framework.request import Request
 
 from . import factories
-from ..serializers import VacancySerializer, SearchSerializer
+from ..serializers import (
+    TagSerializer, CategorySerializer, VacancySerializer, SearchSerializer)
 from ..models import Tag
 
 
+class TagSerializerTestCase(DjangoTestCase):
+
+    def setUp(self):
+        self.tag = factories.TagFactory()
+        self.serializer = TagSerializer(instance=self.tag)
+
+    def test_ok_expected_value(self):
+        data = self.serializer.data
+        self.assertIsInstance(data, str)
+        self.assertEqual(data, str(self.tag))
+
+
+class CategorySerializerTestCase(DjangoTestCase):
+
+    def setUp(self):
+        self.category = factories.CategoryFactory()
+        self.serializer = CategorySerializer(instance=self.category)
+
+    def test_ok_expected_fields(self):
+        data = self.serializer.data
+        self.assertSetEqual(set(data.keys()), set(['id', 'parent', 'title']))
+
+    def test_ok_expected_values(self):
+        data = self.serializer.data
+        self.assertEqual(data['id'], self.category.id)
+        self.assertEqual(data['parent'], self.category.parent)
+        self.assertEqual(data['title'], self.category.title)
+
+
 class VacancySerializerTestCase(DjangoTestCase):
+
     def setUp(self):
         self.data = {
             'title': 'Python/Django backend developer',
@@ -51,8 +82,12 @@ class VacancySerializerTestCase(DjangoTestCase):
         self.assertEqual(data['busyness'], vacancy.busyness)
         self.assertEqual(data['remote_work'], vacancy.remote_work)
         self.assertEqual(data['category'], vacancy.category)
-        self.assertEqual(data['created_on'], str(timezone.make_naive(vacancy.created_on).isoformat()) + 'Z')
-        self.assertEqual(data['modified_on'], str(timezone.make_naive(vacancy.modified_on).isoformat()) + 'Z')
+        self.assertEqual(
+            data['created_on'],
+            str(timezone.make_naive(vacancy.created_on).isoformat()) + 'Z')
+        self.assertEqual(
+            data['modified_on'],
+            str(timezone.make_naive(vacancy.modified_on).isoformat()) + 'Z')
 
     def test_ok_create_keywords_exist(self):
         tag = factories.TagFactory()
