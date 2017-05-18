@@ -10,6 +10,8 @@ api_urlpatterns = [
     # All api endpoints should be included here
     url(r'^users/', include('jobs_backend.users.urls.users', namespace='users')),
     url(r'^account/', include('jobs_backend.users.urls.account', namespace='account')),
+    url(r'^countries/', include('jobs_backend.geo.urls.countries', namespace='countries')),
+    url(r'^cities/', include('jobs_backend.geo.urls.cities', namespace='cities')),
     url(r'^vacancies/', include('jobs_backend.vacancies.urls', namespace='vacancies')),
 ]
 
