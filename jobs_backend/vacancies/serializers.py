@@ -2,9 +2,38 @@ import operator
 from functools import reduce
 
 from django.db.models import Q
+
 from rest_framework import serializers
 
 from .models import Tag, Category, Vacancy
+
+
+class TagSerializer(serializers.ModelSerializer):
+    """
+    Tag model serializer
+    """
+    class Meta:
+        model = Tag
+        fields = ('title',)
+
+    @property
+    def data(self):
+        if not getattr(self, '_errors', None):
+            return self.to_representation(self.instance)
+        else:
+            return self.get_initial()
+
+    def to_representation(self, value):
+        return str(value)
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    """
+    Category model serializer
+    """
+    class Meta:
+        model = Category
+        fields = ('id', 'parent', 'title')
 
 
 class KeywordsField(serializers.StringRelatedField):
@@ -52,8 +81,8 @@ class VacancySerializer(serializers.ModelSerializer):
     """
     Common vacancy model serializer
     """
-    keywords = KeywordsField(many=True)
-    category = CategoryField()
+    keywords = KeywordsField(required=False, many=True)
+    category = CategoryField(required=False)
     location = LocationField(required=False)
 
     class Meta:

@@ -25,14 +25,17 @@ DJANGO_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
 )
 THIRD_PARTY_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
+    'cities',
 )
 LOCAL_APPS = (
     'jobs_backend.users',
     'jobs_backend.vacancies',
+    'jobs_backend.geo',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

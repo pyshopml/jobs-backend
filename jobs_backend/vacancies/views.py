@@ -1,9 +1,24 @@
-from django.db.models import Q
-from rest_framework import mixins, permissions, viewsets, generics, status
-from rest_framework.response import Response
+from rest_framework import mixins, permissions, viewsets, generics
 
-from .models import Vacancy
-from .serializers import VacancySerializer, SearchSerializer
+from .models import Tag, Category, Vacancy
+from .serializers import (
+    TagSerializer, CategorySerializer, VacancySerializer, SearchSerializer)
+
+
+class TagView(generics.ListAPIView):
+    """
+    Tag View
+    """
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+
+class CategoryView(generics.ListAPIView):
+    """
+    Category View
+    """
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
 
 class VacancyViewSet(mixins.CreateModelMixin,
@@ -30,5 +45,3 @@ class SearchVacancyView(generics.ListAPIView):
         search_param_ser.is_valid(raise_exception=True)
         queryset = queryset.filter(search_param_ser.save())
         return queryset
-
-

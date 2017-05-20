@@ -25,7 +25,7 @@ class Vacancy(models.Model):
     salary_max = models.PositiveIntegerField(null=True, blank=True)
     location_city = models.CharField(max_length=128, null=True, blank=True)
     location_country = models.CharField(max_length=128, null=True, blank=True)
-    keywords = models.ManyToManyField(Tag)
+    keywords = models.ManyToManyField(Tag, blank=True)
     busyness = models.PositiveSmallIntegerField(null=True, blank=True)
     remote_work = models.BooleanField(default=False)
     category = models.ForeignKey(Category, null=True, blank=True,
