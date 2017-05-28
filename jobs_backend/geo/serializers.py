@@ -11,13 +11,15 @@ class _LangAltNamesMixin(serializers.ModelSerializer):
     alt_names = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
-        self.lang = kwargs.pop('lang')
+        self.lang = kwargs.pop('lang', None)
         super().__init__(*args, **kwargs)
 
     def get_alt_names(self, obj):
-        alt_names = obj.alt_names.all()
-        if self.lang is not None:
-            alt_names = obj.alt_names.filter(language_code=self.lang)
+        if hasattr(obj, 'alt_names_lang'):
+            # alt_names_lang preloaded by prefetch_related in view
+            alt_names = obj.alt_names_lang
+        else:
+            alt_names = obj.alt_names.all()
 
         return [alt_name.name for alt_name in alt_names]
 

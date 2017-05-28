@@ -4,7 +4,9 @@ from functools import reduce
 from django.db.models import Q
 
 from rest_framework import serializers
+from cities.models import Country, City
 
+from jobs_backend.geo.serializers import CountrySerializer, CitySerializer
 from .models import Tag, Category, Vacancy
 
 
@@ -46,11 +48,10 @@ class KeywordsField(serializers.StringRelatedField):
         return tag
 
 
-class CategoryField(serializers.RelatedField):
+class CategoryField(serializers.Field):
     """
     Representation `category` field of the vacancy model
     """
-    queryset = Category.objects.all()
 
     def to_representation(self, value):
         ret = []
@@ -62,7 +63,7 @@ class CategoryField(serializers.RelatedField):
 
     def to_internal_value(self, data):
         try:
-            category = self.queryset.get(id=data)
+            category = Category.objects.get(id=data)
         except Category.DoesNotExist:
             return None
 
@@ -71,10 +72,50 @@ class CategoryField(serializers.RelatedField):
 
 class LocationField(serializers.DictField):
     """
-    Representation `location` field
+    Representation `location` field of the vacancy model
     """
-    city = serializers.CharField(max_length=128)
-    country = serializers.CharField(max_length=128)
+    default_error_messages = {
+        'invalid_city': 'Invalid city id',
+        'invalid_country': 'Invalid country id'
+    }
+
+    def to_representation(self, value):
+        if value.location_city:
+            country = value.location_city.country
+        else:
+            country = value.location_country
+
+        return {
+            'country': CountrySerializer(
+                country,
+                context=self.context
+            ).data if country else None,
+            'city': CitySerializer(
+                value.location_city,
+                context=self.context
+            ).data if value.location_city else None
+        }
+
+    def to_internal_value(self, data):
+        data = super().to_internal_value(data)
+
+        value = {}
+        if 'city' in data:
+            try:
+                value = {
+                    'location_city': City.objects.get(pk=data['city'])
+                }
+            except City.DoesNotExist:
+                self.fail('invalid_city')
+        elif 'country' in data:
+            try:
+                value = {
+                    'location_country': Country.objects.get(pk=data['country'])
+                }
+            except Country.DoesNotExist:
+                self.fail('invalid_country')
+
+        return value
 
 
 class VacancySerializer(serializers.ModelSerializer):
@@ -83,7 +124,7 @@ class VacancySerializer(serializers.ModelSerializer):
     """
     keywords = KeywordsField(required=False, many=True)
     category = CategoryField(required=False)
-    location = LocationField(required=False)
+    location = LocationField(source='*', required=False)
 
     class Meta:
         model = Vacancy

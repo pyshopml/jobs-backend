@@ -77,7 +77,13 @@ class VacancySerializerTestCase(DjangoTestCase):
         self.assertEqual(data['description'], vacancy.description)
         self.assertEqual(data['salary_min'], vacancy.salary_min)
         self.assertEqual(data['salary_max'], vacancy.salary_max)
-        self.assertDictEqual(data['location'], vacancy.location)
+        self.assertEqual(
+            data['location'],
+            {
+                'country': vacancy.location_country,
+                'city': vacancy.location_city
+            }
+        )
         self.assertCountEqual(data['keywords'], vacancy.keywords.all())
         self.assertEqual(data['busyness'], vacancy.busyness)
         self.assertEqual(data['remote_work'], vacancy.remote_work)

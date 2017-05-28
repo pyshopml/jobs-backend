@@ -1,3 +1,5 @@
+from django.db.models import Prefetch
+
 from rest_framework import mixins, permissions, viewsets, generics
 
 from .models import Tag, Category, Vacancy
@@ -28,9 +30,17 @@ class VacancyViewSet(mixins.CreateModelMixin,
     """
     Vacancy ViewSet
     """
-    queryset = Vacancy.objects.all()
     serializer_class = VacancySerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = Vacancy.objects\
+        .select_related(
+            'location_city', 'location_city__country', 'location_country',
+            'location_city__region', 'location_city__subregion',
+            'category', 'category__parent')\
+        .prefetch_related(
+            'location_city__alt_names', 'location_city__country__alt_names',
+            'location_country__alt_names', 'keywords')\
+        .all()
 
 
 class SearchVacancyView(generics.ListAPIView):
