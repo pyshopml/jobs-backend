@@ -1,6 +1,8 @@
 from django.db import models
 from django.urls import reverse
 
+from cities.models import Country, City
+
 
 class Tag(models.Model):
     title = models.CharField(max_length=128, unique=True)
@@ -23,8 +25,10 @@ class Vacancy(models.Model):
     description = models.TextField(max_length=1000)
     salary_min = models.PositiveIntegerField(null=True, blank=True)
     salary_max = models.PositiveIntegerField(null=True, blank=True)
-    location_city = models.CharField(max_length=128, null=True, blank=True)
-    location_country = models.CharField(max_length=128, null=True, blank=True)
+    location_city = models.ForeignKey(City, null=True, blank=True,
+                                      on_delete=models.PROTECT)
+    location_country = models.ForeignKey(Country, null=True, blank=True,
+                                         on_delete=models.PROTECT)
     keywords = models.ManyToManyField(Tag, blank=True)
     busyness = models.PositiveSmallIntegerField(null=True, blank=True)
     remote_work = models.BooleanField(default=False)
@@ -38,16 +42,3 @@ class Vacancy(models.Model):
 
     def get_absolute_url(self):
         return reverse('api:vacancies:vacancy-detail', kwargs={'pk': self.pk})
-
-    @property
-    def location(self):
-        return {'city': self.location_city, 'country': self.location_country}
-
-    @location.setter
-    def location(self, value):
-        if type(value) is dict:
-            try:
-                self.location_city = value['city']
-                self.location_country = value['country']
-            except KeyError:
-                pass
