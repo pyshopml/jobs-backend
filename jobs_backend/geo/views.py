@@ -1,6 +1,9 @@
 from django.db.models import Prefetch
 
 from rest_framework import mixins, viewsets
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.decorators import list_route
 from cities.models import Country, City, AlternativeName
 
 from .serializers import CountrySerializer, CitySerializer
@@ -11,8 +14,11 @@ class _LangParamMixin:
     Receives a parameter `lang` and sends it to the serializer
     """
 
-    def filter_queryset(self, queryset):
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
         self.lang = self.request.query_params.get('lang')
+
+    def filter_queryset(self, queryset):
         queryset = super().filter_queryset(queryset)
 
         # query optimization with prefetch_related
@@ -41,19 +47,25 @@ class CountryViewSet(_LangParamMixin,
     serializer_class = CountrySerializer
     queryset = Country.objects.all()
 
-    def filter_queryset(self, queryset):
-        queryset = super().filter_queryset(queryset)
+    @list_route()
+    def search(self, request):
+        search_name = self.request.query_params.get('name')
+        queryset = self.get_queryset()
 
-        search_param = self.request.query_params.get('search')
-        if search_param is not None:
+        if search_name is not None:
             if self.lang is not None:
                 queryset = queryset.filter(
                     alt_names__language_code=self.lang,
-                    alt_names__name__icontains=search_param)
+                    alt_names__name__icontains=search_name)
             else:
-                queryset = queryset.filter(name__icontains=search_param)
+                queryset = queryset.filter(name__icontains=search_name)
 
-        return queryset.distinct()
+        if queryset.exists():
+            queryset = queryset.distinct()
+            view = self.__class__.as_view({'get': 'list'}, queryset=queryset)
+            return view(request, *self.args, **self.kwargs)
+
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class CityViewSet(_LangParamMixin,
@@ -67,27 +79,32 @@ class CityViewSet(_LangParamMixin,
     queryset = City.objects.all().select_related(
         'country', 'region', 'subregion')
 
-    def filter_queryset(self, queryset):
-        queryset = super().filter_queryset(queryset)
+    @list_route()
+    def search(self, request):
+        search_name = self.request.query_params.get('name')
+        search_country = self.request.query_params.get('country')
+        queryset = self.get_queryset()
 
-        country_param = self.request.query_params.get('country')
-        search_param = self.request.query_params.get('search')
-
-        if country_param is not None:
+        if search_country is not None:
             if self.lang is not None:
                 queryset = queryset.filter(
                     country__alt_names__language_code=self.lang,
-                    country__alt_names__name__icontains=country_param)
+                    country__alt_names__name__icontains=search_country)
             else:
                 queryset = queryset.filter(
-                    country__name__icontains=country_param)
+                    country__name__icontains=search_country)
 
-        if search_param is not None:
+        if search_name is not None:
             if self.lang is not None:
                 queryset = queryset.filter(
                     alt_names__language_code=self.lang,
-                    alt_names__name__icontains=search_param)
+                    alt_names__name__icontains=search_name)
             else:
-                queryset = queryset.filter(name__icontains=search_param)
+                queryset = queryset.filter(name__icontains=search_name)
 
-        return queryset.distinct()
+        if queryset.distinct():
+            queryset = queryset.distinct()
+            view = self.__class__.as_view({'get': 'list'}, queryset=queryset)
+            return view(request, *self.args, **self.kwargs)
+
+        return Response(status=status.HTTP_404_NOT_FOUND)

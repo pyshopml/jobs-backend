@@ -1,23 +1,38 @@
-from django.db.models import Prefetch
-
-from rest_framework import mixins, permissions, viewsets, generics
+from rest_framework import mixins, permissions, viewsets
+from rest_framework.decorators import list_route
+from rest_framework.response import Response
+from rest_framework import status
 
 from .models import Tag, Category, Vacancy
 from .serializers import (
-    TagSerializer, CategorySerializer, VacancySerializer, SearchSerializer)
+    TagSerializer, CategorySerializer, VacancySerializer)
 
 
-class TagView(generics.ListAPIView):
+class TagViewSet(mixins.ListModelMixin,
+                 viewsets.GenericViewSet):
     """
-    Tag View
+    Tag ViewSet
     """
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
+    @list_route()
+    def search(self, request):
+        search_title = self.request.query_params.get('title')
+        if search_title is not None:
+            queryset = self.get_queryset().filter(title__icontains=search_title)
 
-class CategoryView(generics.ListAPIView):
+        if queryset.exists():
+            view = self.__class__.as_view({'get': 'list'}, queryset=queryset)
+            return view(request, *self.args, **self.kwargs)
+
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class CategoryViewSet(mixins.ListModelMixin,
+                      viewsets.GenericViewSet):
     """
-    Category View
+    Category ViewSet
     """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -42,16 +57,28 @@ class VacancyViewSet(mixins.CreateModelMixin,
             'location_country__alt_names', 'keywords')\
         .all()
 
+    @list_route()
+    def search(self, request):
+        search_title = self.request.query_params.get('title')
+        search_tag = self.request.query_params.get('tag')
+        search_category = self.request.query_params.get('category')
+        queryset = self.get_queryset()
 
-class SearchVacancyView(generics.ListAPIView):
-    queryset = Vacancy.objects.all()
-    serializer_class = VacancySerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    search_serializer = SearchSerializer
+        if search_title is not None:
+            queryset = queryset.filter(
+                title__icontains=search_title)
 
-    def filter_queryset(self, queryset):
-        queryset = super().filter_queryset(queryset)
-        search_param_ser = self.search_serializer(data=self.request.query_params)
-        search_param_ser.is_valid(raise_exception=True)
-        queryset = queryset.filter(search_param_ser.save())
-        return queryset
+        if search_tag is not None:
+            queryset = queryset.filter(
+                keywords__title__icontains=search_tag)
+
+        if search_category is not None:
+            queryset = queryset.filter(
+                category__title__icontains=search_category)
+
+        if queryset.exists():
+            view = self.__class__.as_view(
+                {'get': 'list'}, queryset=queryset)
+            return view(request, *self.args, **self.kwargs)
+
+        return Response(status=status.HTTP_404_NOT_FOUND)
